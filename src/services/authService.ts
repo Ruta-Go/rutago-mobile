@@ -1,5 +1,7 @@
 
-const API_URL = 'http://localhost:8082';
+import * as SecureStore from 'expo-secure-store';
+
+const API_URL = 'https://rutago-backend-a303.onrender.com';
 
 export interface LoginResponse {
   success: boolean;
@@ -37,9 +39,16 @@ export async function iniciarSesion(
     throw new Error(data.message || 'No fue posible iniciar sesión');
   }
 
-  if (!data.token || !data.refreshToken) {
-    throw new Error('El servidor no devolvió los tokens de sesión');
+  if (!data.token || !data.refreshToken || !data.usuario) {
+    throw new Error('La respuesta del servidor está incompleta');
   }
+
+  await SecureStore.setItemAsync('rutago_token', data.token);
+  await SecureStore.setItemAsync('rutago_refresh_token', data.refreshToken);
+  await SecureStore.setItemAsync(
+    'rutago_user',
+    JSON.stringify(data.usuario),
+  );
 
   return data;
 }
