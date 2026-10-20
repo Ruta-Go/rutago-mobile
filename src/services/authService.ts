@@ -1,7 +1,7 @@
 
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'https://rutago-backend-a303.onrender.com';
+const API_URL = 'https://warm-socks-yawn.loca.lt';
 
 export interface LoginResponse {
   success: boolean;
