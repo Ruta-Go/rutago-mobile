@@ -1,56 +1,120 @@
-# Welcome to your Expo app 👋
+# RutaGo Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicación móvil de RutaGo, una plataforma de movilidad orientada a facilitar la conexión entre pasajeros y los servicios de transporte.
 
-## Get started
+El proyecto está desarrollado con React Native, Expo y TypeScript. Actualmente se encuentra en desarrollo y cuenta con una pantalla de inicio de sesión conectada al backend y un dashboard inicial.
 
-1. Install dependencies
+## Tecnologías utilizadas
+
+- React Native: desarrollo de interfaces móviles.
+- Expo: entorno de desarrollo y ejecución.
+- Expo Router: navegación basada en archivos.
+- TypeScript: tipado estático.
+- Expo SecureStore: almacenamiento seguro de tokens y datos de sesión.
+- API REST: comunicación con el backend de RutaGo.
+
+## Requisitos previos
+
+Antes de ejecutar el proyecto, debes tener instalado:
+
+- Node.js y npm.
+- Git, para clonar o actualizar el repositorio.
+- Expo Go en el dispositivo móvil, o un entorno de emulación compatible.
+
+## Instalación
+
+1. Clona el repositorio:
+
+   ```bash
+   git clone https://github.com/Ruta-Go/rutago-mobile.git
+   ```
+
+2. Ingresa a la carpeta del proyecto:
+
+   ```bash
+   cd rutago-mobile
+   ```
+
+3. Instala las dependencias:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+## Ejecución de la aplicación
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Inicia el servidor de desarrollo con:
 
 ```bash
-npm run reset-project
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Para abrir la aplicación, escanea el código QR con Expo Go cuando sea compatible con la versión del proyecto. También puedes utilizar un emulador configurado.
 
-### Other setup steps
+Si necesitas reiniciar la caché de Expo, ejecuta:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npx expo start --clear
+```
 
-## Learn more
+## Conexión con el backend
 
-To learn more about developing your project with Expo, look at the following resources:
+La aplicación utiliza el backend desplegado en Render:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- API: https://rutago-backend-a303.onrender.com
+- Documentación Swagger: https://rutago-backend-a303.onrender.com/api/docs
 
-## Join the community
+El servicio de autenticación se encuentra en:
 
-Join our community of developers creating universal apps.
+`src/services/authService.ts`
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+La aplicación utiliza el endpoint:
+
+`POST /api/auth/login`
+
+El inicio de sesión envía el correo electrónico y la contraseña al servidor. Cuando la autenticación es exitosa, la aplicación guarda el token de acceso, el token de actualización y los datos básicos del usuario mediante Expo SecureStore.
+
+La disponibilidad del inicio de sesión depende de que el backend y la base de datos estén funcionando correctamente.
+
+## Estructura del proyecto
+
+```text
+rutago-mobile/
+├── assets/          # Recursos gráficos
+├── scripts/         # Scripts del proyecto
+├── src/
+│   ├── app/         # Pantallas y navegación
+│   │   ├── index.tsx
+│   │   ├── dashboard.tsx
+│   │   └── _layout.tsx
+│   ├── components/  # Componentes reutilizables
+│   ├── constants/   # Constantes de la aplicación
+│   ├── hooks/       # Hooks personalizados
+│   └── services/    # Comunicación con la API
+│       └── authService.ts
+├── app.json
+├── package.json
+└── README.md
+```
+
+## Funcionalidades implementadas
+
+- Pantalla de inicio de sesión.
+- Validación de la respuesta de autenticación del backend.
+- Almacenamiento de tokens y datos básicos de sesión.
+- Navegación al dashboard después de iniciar sesión.
+- Pantalla inicial de bienvenida con el nombre y el rol del usuario.
+
+## Funcionalidades pendientes
+
+La aplicación continúa en desarrollo. Las pantallas y funcionalidades adicionales de pasajeros, conductores, viajes, rutas, vehículos y demás módulos deben implementarse e integrarse progresivamente con el backend.
+
+## Repositorio
+
+Código fuente de la aplicación móvil:
+
+https://github.com/Ruta-Go/rutago-mobile
+
+## Estado del proyecto
+
+Proyecto en desarrollo. La autenticación y el dashboard inicial están implementados; la cobertura funcional completa de la plataforma móvil está pendiente.
