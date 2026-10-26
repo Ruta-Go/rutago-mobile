@@ -1,5 +1,25 @@
 # RutaGo Mobile
 
+## Tabla de Contenido
+
+- [Descripción del proyecto](#1-descripción-del-proyecto)
+- [Objetivos técnicos](#2-objetivos-técnicos)
+- [Tecnologías y herramientas](#3-tecnologías-y-herramientas)
+- [Arquitectura de la aplicación](#4-arquitectura-de-la-aplicación)
+- [Estructura del proyecto](#5-estructura-del-proyecto)
+- [Archivos relevantes](#archivos-relevantes)
+- [Integración con el backend](#6-integración-con-el-backend)
+- [Flujo de autenticación](#7-flujo-de-autenticación)
+- [Persistencia de la sesión](#8-persistencia-de-la-sesión)
+- [Navegación](#9-navegación)
+- [Instalación y ejecución en desarrollo](#10-instalación-y-ejecución-en-desarrollo)
+- [Consideraciones de seguridad](#11-consideraciones-de-seguridad)
+- [Control de versiones](#12-control-de-versiones)
+- [Estado actual y trabajo pendiente](#13-estado-actual-y-trabajo-pendiente)
+- [Conclusión](#14-conclusión)
+- [Integrantes](#integrantes)
+- [Enlaces](#enlaces)
+
 ## 1. Descripción del proyecto
 
 RutaGo Mobile es el cliente móvil del sistema RutaGo, una plataforma de movilidad que busca facilitar la gestión de los servicios de transporte y la interacción entre los diferentes tipos de usuarios.
@@ -21,16 +41,16 @@ El desarrollo continúa de forma incremental, incorporando las funcionalidades m
 
 ## 3. Tecnologías y herramientas
 
-| Tecnología | Responsabilidad |
-|---|---|
-| React Native | Construcción de interfaces móviles. |
-| Expo | Entorno de desarrollo y ejecución de la aplicación. |
-| TypeScript | Definición de tipos y contratos de datos. |
-| Expo Router | Organización de pantallas y navegación basada en archivos. |
+| Tecnología       | Responsabilidad                                                 |
+| ---------------- | --------------------------------------------------------------- |
+| React Native     | Construcción de interfaces móviles.                             |
+| Expo             | Entorno de desarrollo y ejecución de la aplicación.             |
+| TypeScript       | Definición de tipos y contratos de datos.                       |
+| Expo Router      | Organización de pantallas y navegación basada en archivos.      |
 | Expo SecureStore | Persistencia local de credenciales de sesión y datos asociados. |
-| Fetch API | Comunicación HTTP con el backend. |
-| Node.js y npm | Entorno de herramientas y gestión de dependencias. |
-| Git y GitHub | Control de versiones y almacenamiento del código fuente. |
+| Fetch API        | Comunicación HTTP con el backend.                               |
+| Node.js y npm    | Entorno de herramientas y gestión de dependencias.              |
+| Git y GitHub     | Control de versiones y almacenamiento del código fuente.        |
 
 ## 4. Arquitectura de la aplicación
 
@@ -189,11 +209,11 @@ sequenceDiagram
 
 La implementación utiliza Expo SecureStore para almacenar los siguientes valores:
 
-| Clave de almacenamiento | Contenido |
-|---|---|
-| `rutago_token` | Token de acceso. |
-| `rutago_refresh_token` | Token de actualización. |
-| `rutago_user` | Información básica del usuario en formato JSON. |
+| Clave de almacenamiento | Contenido                                       |
+| ----------------------- | ----------------------------------------------- |
+| `rutago_token`          | Token de acceso.                                |
+| `rutago_refresh_token`  | Token de actualización.                         |
+| `rutago_user`           | Información básica del usuario en formato JSON. |
 
 Este mecanismo permite mantener los datos de sesión disponibles localmente entre ejecuciones, según el comportamiento de la plataforma.
 
@@ -330,3 +350,21 @@ Estas funcionalidades deben considerarse pendientes hasta que su implementación
 RutaGo Mobile constituye el cliente móvil del sistema RutaGo. Su desarrollo parte de una arquitectura organizada por responsabilidades, con una primera integración de autenticación contra el backend y almacenamiento local de los datos de sesión.
 
 La estructura actual permite continuar incorporando funcionalidades de manera incremental, conservando la separación entre interfaz, navegación y servicios de acceso a la API.
+
+## Integrantes
+
+| Rol          | Integrante          |
+| ------------ | ------------------- |
+| Scrum Master | Ángel Estupiñán     |
+| Mobile Lead  | Stefany Potosí      |
+| Mobile Dev   | Sebastián Guapi     |
+| Mobile Dev   | Santiago Estupiñán  |
+| Backend Lead | Cristian Valderrama |
+| Backend Dev  | Edwar Suárez        |
+
+## Enlaces
+
+- **Trello**: https://trello.com/b/zR4MFcBH/rutago
+- **Slack**: https://app.slack.com/client/T0C7BSEC2PJ/C0C6FGWG1NJ
+- **Backend**: https://github.com/Ruta-Go/rutago-backend
+- **Frontend Web**: https://github.com/Ruta-Go/rutago-frontend
