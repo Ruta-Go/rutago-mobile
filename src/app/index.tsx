@@ -1,47 +1,58 @@
-
 import { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
-import { iniciarSesion } from '../services/authService';
+
+import { Button, Card, Input, useToast } from '@/components/ui';
+import { Colores, Espacios, Radios, Tipografia } from '@/constants/tema';
+import { iniciarSesion } from '@/services/authService';
 
 export default function HomeScreen() {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
-  const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [errorCorreo, setErrorCorreo] = useState<string | undefined>();
+  const [errorContrasena, setErrorContrasena] = useState<string | undefined>();
+  const { mostrar } = useToast();
 
   const manejarInicioSesion = async () => {
-    if (!correo.trim() || !contrasena) {
-      Alert.alert(
-        'Campos requeridos',
-        'Ingresa tu correo electrónico y contraseña',
-      );
-      return;
+    setErrorCorreo(undefined);
+    setErrorContrasena(undefined);
+
+    let valido = true;
+
+    if (!correo.trim()) {
+      setErrorCorreo('Ingresa tu correo electrónico');
+      valido = false;
     }
+
+    if (!contrasena) {
+      setErrorContrasena('Ingresa tu contraseña');
+      valido = false;
+    }
+
+    if (!valido) return;
 
     try {
       setCargando(true);
 
-      await iniciarSesion(correo, contrasena);
+      await iniciarSesion(correo.trim(), contrasena);
 
+      mostrar('Sesión iniciada correctamente', { tipo: 'exito' });
       router.replace('/dashboard');
     } catch (error) {
-      Alert.alert(
-        'No se pudo iniciar sesión',
+      mostrar(
         error instanceof Error
           ? error.message
           : 'No fue posible conectar con el servidor',
+        { tipo: 'error' },
       );
     } finally {
       setCargando(false);
@@ -51,121 +62,84 @@ export default function HomeScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <StatusBar style="light" />
-
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
+        keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View style={styles.logo}>
-            <Text style={styles.logoText}>R</Text>
+            <Text style={styles.logoTexto}>R</Text>
           </View>
 
-          <Text style={styles.brand}>RUTA GO</Text>
-          <Text style={styles.tagline}>Tu camino, más fácil</Text>
+          <Text style={styles.marca}>RUTA GO</Text>
+          <Text style={styles.lema}>Tu camino, más fácil</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.title}>¡Bienvenido!</Text>
-          <Text style={styles.subtitle}>
+        <Card style={styles.tarjeta}>
+          <Text style={styles.titulo}>¡Bienvenido!</Text>
+          <Text style={styles.subtitulo}>
             Ingresa a tu cuenta para continuar
           </Text>
 
-          <Text style={styles.label}>Correo electrónico</Text>
-
-          <TextInput
-            style={styles.input}
+          <Input
+            etiqueta="Correo electrónico"
+            requerido
             placeholder="tucorreo@ejemplo.com"
-            placeholderTextColor="#8993A4"
             value={correo}
             onChangeText={setCorreo}
+            error={errorCorreo}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="email"
+            contenedorStyle={styles.campo}
           />
 
-          <Text style={styles.label}>Contraseña</Text>
+          <Input
+            etiqueta="Contraseña"
+            requerido
+            placeholder="Ingresa tu contraseña"
+            value={contrasena}
+            onChangeText={setContrasena}
+            error={errorContrasena}
+            esContrasena
+            autoCapitalize="none"
+            autoComplete="current-password"
+            contenedorStyle={styles.campo}
+          />
 
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Ingresa tu contraseña"
-              placeholderTextColor="#8993A4"
-              value={contrasena}
-              onChangeText={setContrasena}
-              secureTextEntry={!mostrarContrasena}
-              autoCapitalize="none"
-              autoComplete="current-password"
-            />
-
-            <TouchableOpacity
-              onPress={() => setMostrarContrasena(!mostrarContrasena)}
-              accessibilityRole="button"
-              accessibilityLabel={
-                mostrarContrasena
-                  ? 'Ocultar contraseña'
-                  : 'Mostrar contraseña'
-              }
-            >
-              <Text style={styles.showPassword}>
-                {mostrarContrasena ? 'Ocultar' : 'Ver'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            style={styles.forgotButton}
+          <Pressable
+            style={styles.olvido}
             onPress={() =>
-              Alert.alert(
-                'Recuperar contraseña',
-                'La recuperación de contraseña todavía no está conectada.',
-              )
-            }
-          >
-            <Text style={styles.forgotText}>
-              ¿Olvidaste tu contraseña?
-            </Text>
-          </TouchableOpacity>
+              mostrar('La recuperación de contraseña aún no está conectada', {
+                tipo: 'info',
+              })
+            }>
+            <Text style={styles.olvidoTexto}>¿Olvidaste tu contraseña?</Text>
+          </Pressable>
 
-          <TouchableOpacity
-            style={[
-              styles.loginButton,
-              cargando && styles.loginButtonDisabled,
-            ]}
+          <Button
+            titulo="Iniciar sesión"
+            variante="primario"
+            cargando={cargando}
             onPress={manejarInicioSesion}
-            activeOpacity={0.85}
-            disabled={cargando}
-          >
-            <Text style={styles.loginText}>
-              {cargando ? 'Conectando...' : 'Iniciar sesión'}
-            </Text>
-          </TouchableOpacity>
+          />
 
-          <View style={styles.registerRow}>
-            <Text style={styles.registerLabel}>
-              ¿No tienes una cuenta?{' '}
-            </Text>
+          <View style={styles.registro}>
+            <Text style={styles.registroEtiqueta}>¿No tienes una cuenta? </Text>
 
-            <TouchableOpacity
+            <Pressable
               onPress={() =>
-                Alert.alert(
-                  'Registro',
-                  'El registro desde esta pantalla todavía no está conectado.',
-                )
-              }
-            >
-              <Text style={styles.registerLink}>Regístrate</Text>
-            </TouchableOpacity>
+                mostrar('El registro desde esta pantalla aún no está conectado', {
+                  tipo: 'info',
+                })
+              }>
+              <Text style={styles.registroEnlace}>Regístrate</Text>
+            </Pressable>
           </View>
-        </View>
+        </Card>
 
-        <Text style={styles.footer}>
-          RUTA GO · Movilidad para todos
-        </Text>
+        <Text style={styles.pie}>RUTA GO · Movilidad para todos</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -174,142 +148,89 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B1730',
+    backgroundColor: Colores.fondoAlterno,
   },
   scroll: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 36,
+    paddingHorizontal: Espacios.xxl,
+    paddingVertical: Espacios.enorme,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: Espacios.xxxl,
   },
   logo: {
     width: 76,
     height: 76,
-    borderRadius: 24,
-    backgroundColor: '#2F80ED',
+    borderRadius: Radios.extra,
+    backgroundColor: Colores.primario,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: Espacios.md,
   },
-  logoText: {
-    color: '#FFFFFF',
+  logoTexto: {
+    color: Colores.blanco,
     fontSize: 42,
     fontWeight: '900',
   },
-  brand: {
-    color: '#FFFFFF',
+  marca: {
+    color: Colores.primario,
     fontSize: 27,
     fontWeight: '900',
     letterSpacing: 3,
   },
-  tagline: {
-    color: '#B7C8E5',
+  lema: {
+    color: Colores.textoSecundario,
     fontSize: 14,
     marginTop: 7,
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
+  tarjeta: {
+    padding: Espacios.xxxl,
   },
-  title: {
-    color: '#152544',
+  titulo: {
+    color: Colores.texto,
     fontSize: 27,
     fontWeight: '800',
-    marginBottom: 8,
+    marginBottom: Espacios.sm,
   },
-  subtitle: {
-    color: '#65728A',
-    fontSize: 14,
-    marginBottom: 27,
+  subtitulo: {
+    color: Colores.textoSecundario,
+    fontSize: Tipografia.cuerpo,
+    marginBottom: Espacios.xxl,
   },
-  label: {
-    color: '#263754',
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 9,
+  campo: {
+    marginBottom: Espacios.lg,
   },
-  input: {
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#DCE3ED',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    color: '#17243B',
-    fontSize: 15,
-    marginBottom: 20,
-    backgroundColor: '#FAFBFD',
-  },
-  passwordContainer: {
-    minHeight: 52,
-    borderWidth: 1,
-    borderColor: '#DCE3ED',
-    borderRadius: 12,
-    paddingLeft: 14,
-    paddingRight: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FAFBFD',
-  },
-  passwordInput: {
-    flex: 1,
-    height: 50,
-    color: '#17243B',
-    fontSize: 15,
-  },
-  showPassword: {
-    color: '#2F80ED',
-    fontWeight: '700',
-    padding: 5,
-  },
-  forgotButton: {
+  olvido: {
     alignSelf: 'flex-end',
-    marginTop: 14,
-    marginBottom: 24,
+    marginTop: Espacios.xs,
+    marginBottom: Espacios.xxl,
   },
-  forgotText: {
-    color: '#2F80ED',
-    fontSize: 13,
+  olvidoTexto: {
+    color: Colores.primario,
+    fontSize: Tipografia.etiqueta,
     fontWeight: '600',
   },
-  loginButton: {
-    height: 54,
-    borderRadius: 14,
-    backgroundColor: '#2F80ED',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loginButtonDisabled: {
-    opacity: 0.6,
-  },
-  loginText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  registerRow: {
+  registro: {
     flexDirection: 'row',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    marginTop: 24,
+    marginTop: Espacios.xxl,
   },
-  registerLabel: {
-    color: '#65728A',
-    fontSize: 13,
+  registroEtiqueta: {
+    color: Colores.textoSecundario,
+    fontSize: Tipografia.etiqueta,
   },
-  registerLink: {
-    color: '#2F80ED',
-    fontSize: 13,
+  registroEnlace: {
+    color: Colores.primario,
+    fontSize: Tipografia.etiqueta,
     fontWeight: '800',
   },
-  footer: {
-    color: '#A9BAD6',
-    fontSize: 12,
+  pie: {
+    color: Colores.textoTerciario,
+    fontSize: Tipografia.ayuda,
     textAlign: 'center',
-    marginTop: 24,
+    marginTop: Espacios.xxl,
   },
 });
