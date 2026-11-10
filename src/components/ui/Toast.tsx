@@ -46,7 +46,7 @@ const ESTILOS_TIPO: Record<
   exito: { fondo: Colores.primario, texto: Colores.blanco, icono: '✓' },
   error: { fondo: Colores.error, texto: Colores.blanco, icono: '!' },
   advertencia: { fondo: Colores.advertencia, texto: Colores.negro, icono: '!' },
-  info: { fondo: Colores.carbon, texto: Colores.blanco, icono: 'i' },
+ info: { fondo: Colores.primario, texto: Colores.blanco, icono: 'i' },
 };
 
 const SEPARACION_SUPERIOR = Platform.select({

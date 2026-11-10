@@ -1,23 +1,36 @@
+
 export const Colores = {
-  primario: '#08863A',
-  primarioPresionado: '#066C2F',
-  primarioSuave: '#E6F4EC',
+  primario: '#07883F',
+  primarioPresionado: '#066C32',
+  primarioSuave: '#E8F5EC',
+
+  secundario: '#F5C400',
+  secundarioPresionado: '#D9AD00',
+  secundarioSuave: '#FFF8D9',
+
   carbon: '#374151',
   carbonPresionado: '#1F2937',
+
   texto: '#1F2937',
   textoSecundario: '#6B7280',
   textoTerciario: '#9CA3AF',
+
   borde: '#D1D5DB',
   bordeSuave: '#E5E7EB',
+
   fondo: '#FFFFFF',
-  fondoAlterno: '#F3F4F6',
-  exito: '#08863A',
-  error: '#EF4444',
+  fondoAlterno: '#FFFFFF',
+
+  exito: '#07883F',
+  error: '#DC2626',
   errorSuave: '#FEE2E2',
-  advertencia: '#F59E0B',
-  advertenciaSuave: '#FEF3C7',
-  info: '#2563EB',
-  infoSuave: '#DBEAFE',
+
+  advertencia: '#F5C400',
+  advertenciaSuave: '#FFF8D9',
+
+  info: '#07883F',
+  infoSuave: '#E8F5EC',
+
   blanco: '#FFFFFF',
   negro: '#111827',
   transparente: 'transparent',

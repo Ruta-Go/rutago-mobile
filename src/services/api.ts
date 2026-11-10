@@ -2,7 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8082';
+const API_URL = 'https://rutago-backend-a303.onrender.com';
 
 const CLAVE_TOKEN = 'rutago_token';
 const CLAVE_REFRESH = 'rutago_refresh_token';

@@ -33,7 +33,7 @@ export default function DashboardScreen() {
   if (cargando) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#2F80ED" />
+        <ActivityIndicator size="large" color="#07883F" />
       </View>
     );
   }
@@ -43,12 +43,17 @@ export default function DashboardScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
         <Text style={styles.brand}>RUTA GO</Text>
+
+        <View style={styles.accent} />
+
         <Text style={styles.title}>
           ¡Bienvenido{usuario?.nombres ? `, ${usuario.nombres}` : ''}!
         </Text>
+
         <Text style={styles.subtitle}>
           {usuario?.rol?.nombreRol ?? 'Usuario'}
         </Text>
+
         <Text style={styles.description}>
           Tu espacio de movilidad está listo para continuar.
         </Text>
@@ -60,32 +65,40 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B1730',
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
   brand: {
-    color: '#2F80ED',
-    fontSize: 18,
+    color: '#07883F',
+    fontSize: 22,
     fontWeight: '900',
-    letterSpacing: 4,
+    letterSpacing: 5,
+    marginBottom: 18,
+  },
+  accent: {
+    width: 55,
+    height: 5,
+    backgroundColor: '#F5C400',
+    borderRadius: 10,
     marginBottom: 28,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#202936',
     fontSize: 28,
     fontWeight: '800',
     textAlign: 'center',
   },
   subtitle: {
-    color: '#B7C8E5',
-    fontSize: 17,
+    color: '#07883F',
+    fontSize: 18,
+    fontWeight: '600',
     marginTop: 12,
   },
   description: {
-    color: '#B7C8E5',
-    fontSize: 14,
+    color: '#687385',
+    fontSize: 15,
     textAlign: 'center',
     marginTop: 20,
   },
