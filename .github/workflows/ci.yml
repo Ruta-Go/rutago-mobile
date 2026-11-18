@@ -1,0 +1,37 @@
+name: CI Móvil RutaGo
+
+on:
+  push:
+    branches:
+      - feature-ASEG1999
+      - dev
+      - main
+  pull_request:
+    branches:
+      - feature-ASEG1999
+      - dev
+      - main
+
+jobs:
+  verify:
+    name: Typecheck y lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar tipos
+        run: npx tsc --noEmit
+
+      - name: Verificar lint
+        run: npm run lint

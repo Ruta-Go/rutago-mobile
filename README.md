@@ -66,6 +66,8 @@ npx expo export --platform web --output-dir <ruta-temporal>
 
 Todos los comandos pasan sin errores. No se generan artefactos dentro del repositorio.
 
+`.github/workflows/ci.yml` repite `npm ci`, `npx tsc --noEmit` y `npm run lint` en pushes y PRs de `feature-ASEG1999`, `dev` y `main`. El build/submit con EAS queda pendiente de credenciales de Expo.
+
 ## Sprints y cierre
 
 Consulta [`SPRINTS.md`](SPRINTS.md) para el resumen cross-repo, commits, evidencia de pruebas y riesgos pendientes.
