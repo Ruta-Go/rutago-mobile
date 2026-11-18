@@ -15,7 +15,12 @@ type Opcion = {
   titulo: string;
   descripcion: string;
   icono: string;
-  ruta?: '/buscar-viajes';
+  ruta?:
+    | '/buscar-viajes'
+    | '/mis-viajes'
+    | '/mis-solicitudes'
+    | '/mi-perfil'
+    | '/notificaciones';
 };
 
 const OPCIONES_PASAJERO: Opcion[] = [
@@ -25,20 +30,57 @@ const OPCIONES_PASAJERO: Opcion[] = [
     icono: '🔎',
     ruta: '/buscar-viajes',
   },
-  { titulo: 'Mis viajes', descripcion: 'Consulta tus viajes', icono: '🚗' },
-  { titulo: 'Mis solicitudes', descripcion: 'Revisa tus solicitudes', icono: '📋' },
-  { titulo: 'Mi perfil', descripcion: 'Consulta tus datos personales', icono: '👤' },
+  {
+    titulo: 'Mis viajes',
+    descripcion: 'Consulta tus viajes',
+    icono: '🚗',
+    ruta: '/mis-viajes',
+  },
+  {
+    titulo: 'Mis solicitudes',
+    descripcion: 'Revisa tus solicitudes',
+    icono: '📋',
+    ruta: '/mis-solicitudes',
+  },
+  {
+    titulo: 'Notificaciones',
+    descripcion: 'Avisos de tus viajes',
+    icono: '🔔',
+    ruta: '/notificaciones',
+  },
+  {
+    titulo: 'Mi perfil',
+    descripcion: 'Consulta y actualiza tus datos',
+    icono: '👤',
+    ruta: '/mi-perfil',
+  },
 ];
 
 const OPCIONES_CONDUCTOR: Opcion[] = [
-  { titulo: 'Publicar viaje', descripcion: 'Ofrece un nuevo recorrido', icono: '➕' },
-  { titulo: 'Mis viajes', descripcion: 'Administra tus recorridos', icono: '🚘' },
   {
     titulo: 'Solicitudes recibidas',
-    descripcion: 'Gestiona pasajeros interesados',
+    descripcion: 'Acepta viajes que buscan conductor',
     icono: '📩',
+    ruta: '/mis-solicitudes',
   },
-  { titulo: 'Mi perfil', descripcion: 'Consulta tus datos personales', icono: '👤' },
+  {
+    titulo: 'Mis viajes',
+    descripcion: 'Administra tus recorridos',
+    icono: '🚘',
+    ruta: '/mis-viajes',
+  },
+  {
+    titulo: 'Notificaciones',
+    descripcion: 'Avisos de tus viajes',
+    icono: '🔔',
+    ruta: '/notificaciones',
+  },
+  {
+    titulo: 'Mi perfil',
+    descripcion: 'Consulta y actualiza tus datos',
+    icono: '👤',
+    ruta: '/mi-perfil',
+  },
 ];
 
 const OPCIONES_GESTION: Opcion[] = [
@@ -47,7 +89,24 @@ const OPCIONES_GESTION: Opcion[] = [
     descripcion: 'Administra entidades, rutas y viajes',
     icono: '🛠️',
   },
-  { titulo: 'Mi perfil', descripcion: 'Consulta tus datos personales', icono: '👤' },
+  {
+    titulo: 'Mis viajes',
+    descripcion: 'Consulta tus viajes registrados',
+    icono: '🚗',
+    ruta: '/mis-viajes',
+  },
+  {
+    titulo: 'Notificaciones',
+    descripcion: 'Avisos de tus viajes',
+    icono: '🔔',
+    ruta: '/notificaciones',
+  },
+  {
+    titulo: 'Mi perfil',
+    descripcion: 'Consulta y actualiza tus datos',
+    icono: '👤',
+    ruta: '/mi-perfil',
+  },
 ];
 
 export default function DashboardScreen() {
@@ -62,7 +121,7 @@ export default function DashboardScreen() {
 
   const manejarOpcion = (opcion: Opcion) => {
     if (opcion.ruta) {
-      router.push(opcion.ruta);
+      router.push(opcion.ruta as Parameters<typeof router.push>[0]);
       return;
     }
     Alert.alert(

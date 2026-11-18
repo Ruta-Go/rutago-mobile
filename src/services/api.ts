@@ -10,6 +10,9 @@ import { router } from 'expo-router';
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL || 'https://rutago-backend-a303.onrender.com';
 
+/** Mismo host, protocolo WS/WSS. Se deriva para no duplicar configuración. */
+export const WS_URL = API_URL.replace(/^http/, 'ws');
+
 const CLAVE_TOKEN = 'rutago_token';
 const CLAVE_REFRESH = 'rutago_refresh_token';
 const CLAVE_USUARIO = 'rutago_user';
@@ -85,6 +88,12 @@ export async function leerSesion(): Promise<{
     SecureStore.getItemAsync(CLAVE_USUARIO),
   ]);
   return { token, usuario: usuario ? JSON.parse(usuario) : null };
+}
+
+/** Actualiza los datos del usuario guardados sin tocar el token. */
+export async function guardarUsuarioSesion(usuario: unknown) {
+  await SecureStore.setItemAsync(CLAVE_USUARIO, JSON.stringify(usuario));
+  notificarSesion();
 }
 
 type ResolverCola = (token: string | null) => void;

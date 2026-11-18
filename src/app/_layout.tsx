@@ -26,6 +26,10 @@ function Navegador() {
       <Stack.Protected guard={Boolean(token)} redirectTo="/">
         <Stack.Screen name="dashboard" />
         <Stack.Screen name="buscar-viajes" />
+        <Stack.Screen name="mis-viajes" />
+        <Stack.Screen name="mis-solicitudes" />
+        <Stack.Screen name="mi-perfil" />
+        <Stack.Screen name="notificaciones" />
       </Stack.Protected>
 
       <Stack.Screen name="explore" />
