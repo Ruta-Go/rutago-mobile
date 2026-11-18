@@ -66,6 +66,10 @@ npx expo export --platform web --output-dir <ruta-temporal>
 
 Todos los comandos pasan sin errores. No se generan artefactos dentro del repositorio.
 
+## Sprints y cierre
+
+Consulta [`SPRINTS.md`](SPRINTS.md) para el resumen cross-repo, commits, evidencia de pruebas y riesgos pendientes.
+
 ## Funciones pendientes (sin simular éxito)
 
 - Publicación/gestión de viajes, solicitudes y perfil editable desde la app; hoy se indican como disponibles en la versión web.
