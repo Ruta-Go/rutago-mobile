@@ -300,6 +300,22 @@ export default function MisViajesScreen() {
                 ) : null}
 
                 <View style={styles.acciones}>
+                  {rolId === ROLES.CONDUCTOR &&
+                    (id === ESTADO_VIAJE.ACEPTADO ||
+                      id === ESTADO_VIAJE.EN_CURSO) && (
+                      <Pressable
+                        style={styles.botonAccion}
+                        onPress={() =>
+                          router.push(
+                            `/reportar-ubicacion?viajeId=${viaje.id}` as Parameters<
+                              typeof router.push
+                            >[0],
+                          )
+                        }>
+                        <Text style={styles.textoBoton}>Reportar GPS</Text>
+                      </Pressable>
+                    )}
+
                   {rolId === ROLES.CONDUCTOR && id === ESTADO_VIAJE.ACEPTADO && (
                     <Pressable
                       style={styles.botonAccion}

@@ -12,6 +12,10 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { Stack, router } from 'expo-router';
 
+import {
+  OPCIONES_ESTADO_CONDUCTOR,
+  NOMBRES_ESTADO_CONDUCTOR,
+} from '@/constants/estados';
 import { ROLES, nombreRol } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import {
@@ -47,6 +51,9 @@ export default function MiPerfilScreen() {
   const [direccion, setDireccion] = useState('');
   const [numeroDocumento, setNumeroDocumento] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState('');
+  const [licencia, setLicencia] = useState('');
+  const [estadoConductorId, setEstadoConductorId] = useState<number | null>(null);
+  const rolId = Number(usuario?.rolId ?? usuario?.rol?.id);
 
   const cargar = useCallback(async () => {
     try {
@@ -60,13 +67,21 @@ export default function MiPerfilScreen() {
       setDireccion(datos.pasajero?.direccion ?? '');
       setNumeroDocumento(datos.pasajero?.numeroDocumento ?? '');
       setFechaNacimiento(datos.pasajero?.fechaNacimiento ?? '');
+      setLicencia(datos.conductor?.licenciaConducir ?? '');
+      setEstadoConductorId(datos.conductor?.estado?.id ?? null);
+      if (rolId === ROLES.CONDUCTOR) {
+        const conductor = await api.get<unknown>('/conductores/me/perfil');
+        const datosConductor = extraerDatos<Perfil['conductor']>(conductor.data);
+        setLicencia(datosConductor?.licenciaConducir ?? '');
+        setEstadoConductorId(datosConductor?.estado?.id ?? null);
+      }
     } catch (error) {
       console.error('Error al cargar perfil:', mensajeError(error));
       Alert.alert('Error', mensajeError(error));
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [rolId]);
 
   useEffect(() => {
     void Promise.resolve().then(cargar);
@@ -90,6 +105,48 @@ export default function MiPerfilScreen() {
       await guardarUsuarioSesion(datos);
       await refrescarSesion();
       Alert.alert('Listo', 'Tus datos personales se actualizaron.');
+    } catch (error) {
+      Alert.alert('Error', mensajeError(error));
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const guardarLicencia = async () => {
+    if (licencia.length > 50) {
+      Alert.alert('Dato inválido', 'La licencia no puede exceder 50 caracteres.');
+      return;
+    }
+    try {
+      setGuardando(true);
+      const respuesta = await api.put<unknown>('/conductores/me/perfil', {
+        licenciaConducir: licencia.trim(),
+      });
+      const datos = extraerDatos<Perfil['conductor']>(respuesta.data);
+      setPerfil((anterior) => ({ ...anterior, conductor: datos }));
+      Alert.alert('Listo', 'Tu licencia se actualizó.');
+    } catch (error) {
+      Alert.alert('Error', mensajeError(error));
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const cambiarEstadoConductor = async (estadoId: number) => {
+    if (!perfil?.conductor?.id) {
+      Alert.alert('Error', 'No se encontró tu perfil de conductor.');
+      return;
+    }
+    try {
+      setGuardando(true);
+      const respuesta = await api.patch<unknown>(
+        `/conductores/${perfil.conductor.id}/estado`,
+        { estadoId },
+      );
+      const datos = extraerDatos<Perfil['conductor']>(respuesta.data);
+      setEstadoConductorId(datos?.estado?.id ?? estadoId);
+      setPerfil((anterior) => ({ ...anterior, conductor: datos }));
+      Alert.alert('Listo', 'Tu estado se actualizó.');
     } catch (error) {
       Alert.alert('Error', mensajeError(error));
     } finally {
@@ -165,7 +222,6 @@ export default function MiPerfilScreen() {
     }
   };
 
-  const rolId = Number(usuario?.rolId ?? usuario?.rol?.id ?? perfil?.rol?.id);
   const rol = perfil?.rol?.nombreRol ?? nombreRol(rolId);
 
   return (
@@ -314,6 +370,46 @@ export default function MiPerfilScreen() {
               </>
             )}
 
+            {rolId === ROLES.CONDUCTOR && (
+              <>
+                <Text style={styles.subtitulo}>Datos de conductor</Text>
+                <View style={styles.tarjeta}>
+                  <Text style={styles.etiqueta}>Licencia de conducción</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={licencia}
+                    onChangeText={setLicencia}
+                    maxLength={50}
+                  />
+                  <Pressable
+                    style={[styles.boton, guardando && styles.botonDeshabilitado]}
+                    onPress={() => void guardarLicencia()}
+                    disabled={guardando}>
+                    <Text style={styles.textoBoton}>Guardar licencia</Text>
+                  </Pressable>
+
+                  <Text style={styles.etiqueta}>Estado actual</Text>
+                  <Text style={styles.valor}>
+                    {estadoConductorId != null
+                      ? NOMBRES_ESTADO_CONDUCTOR[estadoConductorId] ?? 'Sin estado'
+                      : 'Sin estado'}
+                  </Text>
+                  {OPCIONES_ESTADO_CONDUCTOR.map((opcion) => (
+                    <Pressable
+                      key={opcion.id}
+                      style={[
+                        styles.opcionEstado,
+                        estadoConductorId === opcion.id && styles.opcionEstadoSeleccionada,
+                      ]}
+                      onPress={() => void cambiarEstadoConductor(opcion.id)}
+                      disabled={guardando}>
+                      <Text style={styles.textoOpcionEstado}>{opcion.nombre}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            )}
+
             <Text style={styles.subtitulo}>Contraseña</Text>
             <View style={styles.tarjeta}>
               <Text style={styles.etiqueta}>Contraseña actual</Text>
@@ -402,4 +498,17 @@ const styles = StyleSheet.create({
   },
   botonDeshabilitado: { opacity: 0.7 },
   textoBoton: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  opcionEstado: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginTop: 8,
+  },
+  opcionEstadoSeleccionada: {
+    borderColor: '#07883F',
+    backgroundColor: '#E6F4EC',
+  },
+  textoOpcionEstado: { color: '#374151', fontSize: 14, fontWeight: '600' },
 });

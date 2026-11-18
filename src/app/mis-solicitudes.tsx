@@ -73,26 +73,8 @@ export default function MisSolicitudesScreen() {
   }, [cargar]);
 
   const aceptar = (viaje: Viaje) => {
-    Alert.alert(
-      'Aceptar viaje',
-      `¿Quieres aceptar el viaje #${viaje.id}?`,
-      [
-        { text: 'Volver', style: 'cancel' },
-        {
-          text: 'Aceptar',
-          onPress: async () => {
-            try {
-              const respuesta = await api.patch<{ message?: string }>(
-                `/viajes/${viaje.id}/aceptar`,
-              );
-              Alert.alert('Listo', respuesta.data?.message ?? 'Viaje aceptado.');
-              await cargar();
-            } catch (error) {
-              Alert.alert('Error', mensajeError(error));
-            }
-          },
-        },
-      ],
+    router.push(
+      `/aceptar-viaje?viajeId=${viaje.id}` as Parameters<typeof router.push>[0],
     );
   };
 

@@ -33,7 +33,13 @@
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "RutaGo usa tu ubicación para reportar el avance del viaje a los pasajeros."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

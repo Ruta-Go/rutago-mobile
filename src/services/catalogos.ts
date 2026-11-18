@@ -1,5 +1,5 @@
 import { api, extraerLista } from '@/services/api';
-import type { Comuna, Horario, Ruta } from '@/types/rutago';
+import type { Comuna, Horario, Ruta, Vehiculo } from '@/types/rutago';
 
 export async function listarRutas(): Promise<Ruta[]> {
   const respuesta = await api.get<unknown>('/rutas', {
@@ -18,6 +18,13 @@ export async function listarComunas(): Promise<Comuna[]> {
     params: { paginaActual: 1, registrosPorPagina: 200 },
   });
   return extraerLista<Comuna>(respuesta.data);
+}
+
+export async function listarVehiculos(): Promise<Vehiculo[]> {
+  const respuesta = await api.get<unknown>('/vehiculos', {
+    params: { paginaActual: 1, registrosPorPagina: 100 },
+  });
+  return extraerLista<Vehiculo>(respuesta.data);
 }
 
 export function etiquetaRuta(ruta: Ruta): string {

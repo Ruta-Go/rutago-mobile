@@ -61,6 +61,24 @@ export type Viaje = {
   updatedAt?: string;
 };
 
+export type Vehiculo = {
+  id: number;
+  placa?: string;
+  marca?: string;
+  modelo?: string;
+  color?: string;
+  capacidadPasajeros?: number | null;
+  estado?: { id?: number; nombre?: string };
+  entidad?: {
+    id?: number;
+    razonSocial?: string;
+    usuario?: { id?: number; nombres?: string };
+  };
+  latitud?: number | null;
+  longitud?: number | null;
+  ultimaActualizacion?: string;
+};
+
 export type Notificacion = {
   id: number;
   usuarioId?: number;
@@ -87,7 +105,11 @@ export type Perfil = {
     fechaNacimiento?: string;
     tipoDocumentoId?: number;
   };
-  conductor?: { id?: number; licenciaConducir?: string };
+  conductor?: {
+    id?: number;
+    licenciaConducir?: string;
+    estado?: { id?: number; nombre?: string };
+  };
   entidad?: {
     id?: number;
     razonSocial?: string;

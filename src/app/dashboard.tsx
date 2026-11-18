@@ -17,6 +17,8 @@ type Opcion = {
   icono: string;
   ruta?:
     | '/buscar-viajes'
+    | '/aceptar-viaje'
+    | '/reportar-ubicacion'
     | '/crear-viaje'
     | '/viajes-disponibles'
     | '/mis-viajes'
@@ -82,6 +84,12 @@ const OPCIONES_CONDUCTOR: Opcion[] = [
     descripcion: 'Administra tus recorridos',
     icono: '🚘',
     ruta: '/mis-viajes',
+  },
+  {
+    titulo: 'Reportar ubicación',
+    descripcion: 'Envía tu GPS real del vehículo asignado',
+    icono: '📍',
+    ruta: '/reportar-ubicacion',
   },
   {
     titulo: 'Notificaciones',
