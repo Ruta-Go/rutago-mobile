@@ -34,11 +34,19 @@ npm start
 | --- | --- | --- |
 | `/` | Público | Inicio de sesión. |
 | `/recuperar-password` | Público | Solicitud de enlace y restablecimiento con `?token=`. |
-| `/dashboard` | Autenticado | Panel por rol real (`Administrador`, `Conductor`, `Pasajero`, `Entidad Externa`). |
+| `/dashboard` | Autenticado | Panel por rol real: `Administrador`, `Conductor` o `Pasajero`. `Entidad Externa` queda fuera del alcance móvil. |
 | `/buscar-viajes` | Autenticado | Búsqueda real de rutas por destino y origen. |
 | `/mis-viajes` | Autenticado | Viajes propios desde `/viajes/me/mis-viajes`; el conductor puede iniciar/finalizar/cancelar y el pasajero cancelar. Los viajes aceptados/en curso muestran la posición inicial de `/vehiculos/:id/ubicacion` y la actualizan con eventos `ubicacion` de la sala `viaje:<id>`. |
 | `/mis-solicitudes` | Autenticado | Pasajero: solicitudes pendientes filtradas de su historial. Conductor: `/viajes/disponibles` con aceptación real. |
-| `/mi-perfil` | Autenticado | Lectura y edición de `/usuarios/me/perfil` y cambio de contraseña con `/usuarios/me/contrasena`. |
+| `/crear-viaje` | Pasajero | Solicitud real con rutas y horarios de `/rutas` y `/horarios/ruta/:id`. |
+| `/viajes-disponibles` | Pasajero | Viajes en estado BUSCANDO desde `/viajes/disponibles-pasajero`, con unión real por `/unirse`. |
+| `/aceptar-viaje` | Conductor | Aceptación con `vehiculoId` real desde `/vehiculos`. |
+| `/reportar-ubicacion` | Conductor | GPS real con `expo-location` hacia `/vehiculos/:id/ubicacion`. |
+| `/panel-gestion` | Administrador | Módulos y conteos consultados a los endpoints reales. |
+| `/gestion` | Administrador | Listado, búsqueda, alta, edición y baja por recurso. |
+| `/gestion-detalle` | Administrador | Formulario real por recurso, con opciones cargadas del backend. |
+| `/crear-notificacion` | Administrador | Notificación interna persistida y difundida por WebSocket. |
+| `/mi-perfil` | Autenticado | Datos comunes, datos de pasajero o licencia/estado de conductor según el rol. |
 | `/notificaciones` | Autenticado | Lista persistida en `/notificaciones`, marca de leído y refresco por WebSocket autenticado. |
 | `/explore` | Público | Pantalla de ejemplo del template Expo. |
 

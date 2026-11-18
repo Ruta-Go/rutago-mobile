@@ -45,14 +45,14 @@ No se generaron artefactos (`dist`, `web-build`) dentro de los repositorios.
 
 ## Decisiones técnicas
 
-1. **Roles válidos:** `Administrador` (1), `Conductor` (2), `Pasajero` (3), `Entidad Externa` (4). El backend verifica siempre; el cliente nunca decide el rol en registro ni puede escalar.
+1. **Roles válidos en el móvil:** `Administrador` (1), `Conductor` (2), `Pasajero` (3). `Entidad Externa` existe en el backend pero queda fuera del alcance de la app móvil. El backend verifica siempre; el cliente nunca decide el rol en registro ni puede escalar.
 2. **Contrato de respuesta:** las listas y detalles usan `{ success, data, message? }`. El móvil hace `unwrap` con `extraerDatos` / `extraerLista`.
 3. **Recuperación:** token de un solo uso guardado como hash SHA-256. Resend vía `fetch`; sin `EMAIL_API_KEY` el modo desarrollo imprime el enlace en consola y producción responde 503. No se enviaron correos reales.
 4. **Deep link móvil:** `rutagomobile://recuperar-password?token=...`, configurable con `PASSWORD_RESET_URL` en el backend.
 5. **Horarios reales:** `GET /api/rutas/destino/:destino` devuelve `horarios: string[]`. El móvil muestra horas reales y **no inventa** placa, empresa ni estado de vehículo porque el DTO no los incluye.
 6. **Sin secretos:** `.env` nunca se publicó ni se incluyó en commits. Las variables públicas son sólo `VITE_API_URL` y `EXPO_PUBLIC_API_URL`.
 7. **CI/CD:** deploy web con `npm ci`; el script de producción ya **no genera** `JWT_SECRET` automáticamente (falla con mensaje si falta). El móvil tiene CI de `tsc`/lint; EAS build/submit sigue pendiente de credenciales.
-8. **Tiempo real implementado:** se reutiliza el REST de GPS existente; `/ws` sólo difunde eventos y `rutaGeometria` ya existente evita migraciones espaciales. El móvil consume notificaciones persistentes y, en viajes aceptados/en curso, muestra coordenadas reales con posición inicial por REST y eventos `ubicacion` en la sala autorizada `viaje:<id>`; “Abrir mapa” usa esas coordenadas. Siguen diferidos el mapa nativo embebido, el push del SO, EAS y el panel administrativo móvil.
+8. **Tiempo real implementado:** se reutiliza el REST de GPS existente; `/ws` sólo difunde eventos y `rutaGeometria` ya existente evita migraciones espaciales. El móvil consume notificaciones persistentes y, en viajes aceptados/en curso, muestra coordenadas reales con posición inicial por REST y eventos `ubicacion` en la sala autorizada `viaje:<id>`; “Abrir mapa” usa esas coordenadas. Siguen diferidos el mapa nativo embebido, el push del SO y EAS; el panel administrativo móvil ya está implementado con CRUD real y notificaciones internas.
 9. **Estado del dominio:** `rutago.seminario1.eleueleo.com` responde con la página de dominio vencido de Hostinger; por eso no se pueden ejecutar los 4 checks de Fase 2 en vivo. El backend de Render sigue en 200. Renovar el dominio o publicar el frontend en otra URL antes de la demo.
 
 ## Restricciones respetadas
