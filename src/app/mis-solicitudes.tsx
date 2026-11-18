@@ -96,6 +96,31 @@ export default function MisSolicitudesScreen() {
     );
   };
 
+  const bajarse = (viaje: Viaje) => {
+    Alert.alert(
+      'Salir del viaje',
+      `¿Quieres bajarte del viaje #${viaje.id}?`,
+      [
+        { text: 'Volver', style: 'cancel' },
+        {
+          text: 'Bajarme',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const respuesta = await api.delete<{ message?: string }>(
+                `/viajes/${viaje.id}/bajarse`,
+              );
+              Alert.alert('Listo', respuesta.data?.message ?? 'Saliste del viaje.');
+              await cargar();
+            } catch (error) {
+              Alert.alert('Error', mensajeError(error));
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const cancelar = (viaje: Viaje) => {
     Alert.alert(
       'Cancelar solicitud',
@@ -201,14 +226,23 @@ export default function MisSolicitudesScreen() {
                   </Pressable>
                 )}
 
-                {esPasajero && (
-                  <Pressable
-                    style={styles.botonSecundario}
-                    onPress={() => cancelar(viaje)}>
-                    <Text style={styles.textoBotonSecundario}>
-                      Cancelar solicitud
-                    </Text>
-                  </Pressable>
+                {esPasajero && idEstado(viaje) !== ESTADO_VIAJE.CANCELADO && (
+                  <>
+                    <Pressable
+                      style={styles.botonSecundario}
+                      onPress={() => bajarse(viaje)}>
+                      <Text style={styles.textoBotonSecundario}>
+                        Bajarme del viaje
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.botonSecundario}
+                      onPress={() => cancelar(viaje)}>
+                      <Text style={styles.textoBotonSecundario}>
+                        Cancelar solicitud
+                      </Text>
+                    </Pressable>
+                  </>
                 )}
               </View>
             );

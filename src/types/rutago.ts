@@ -1,8 +1,33 @@
 export type UsuarioResumen = {
   id?: number;
+  usuarioId?: number;
   nombres?: string;
   apellidos?: string;
   correo?: string;
+};
+
+export type Comuna = {
+  id: number;
+  nombre?: string;
+};
+
+export type Horario = {
+  id: number;
+  rutaId?: number;
+  horaSalida?: string;
+  frecuenciaMinutos?: number | null;
+};
+
+export type Ruta = {
+  id: number;
+  nombre?: string;
+  origen?: Comuna;
+  destino?: Comuna;
+  descripcion?: string;
+  distanciaKm?: number | null;
+  tiempoEstimadoMinutos?: number | null;
+  costo?: number | null;
+  horarios?: string[] | Horario[] | null;
 };
 
 export type Viaje = {
@@ -59,6 +84,8 @@ export type Perfil = {
     telefono?: string;
     direccion?: string;
     numeroDocumento?: string;
+    fechaNacimiento?: string;
+    tipoDocumentoId?: number;
   };
   conductor?: { id?: number; licenciaConducir?: string };
   entidad?: {

@@ -17,6 +17,8 @@ type Opcion = {
   icono: string;
   ruta?:
     | '/buscar-viajes'
+    | '/crear-viaje'
+    | '/viajes-disponibles'
     | '/mis-viajes'
     | '/mis-solicitudes'
     | '/mi-perfil'
@@ -26,9 +28,21 @@ type Opcion = {
 const OPCIONES_PASAJERO: Opcion[] = [
   {
     titulo: 'Buscar viajes',
-    descripcion: 'Encuentra viajes disponibles',
+    descripcion: 'Encuentra rutas por origen y destino',
     icono: '🔎',
     ruta: '/buscar-viajes',
+  },
+  {
+    titulo: 'Solicitar viaje',
+    descripcion: 'Crea una solicitud con ruta y horario reales',
+    icono: '➕',
+    ruta: '/crear-viaje',
+  },
+  {
+    titulo: 'Viajes disponibles',
+    descripcion: 'Únete a solicitudes abiertas',
+    icono: '🚐',
+    ruta: '/viajes-disponibles',
   },
   {
     titulo: 'Mis viajes',

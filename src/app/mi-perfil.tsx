@@ -12,7 +12,7 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { Stack, router } from 'expo-router';
 
-import { nombreRol } from '@/constants/roles';
+import { ROLES, nombreRol } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import {
   api,
@@ -20,6 +20,8 @@ import {
   guardarUsuarioSesion,
 } from '@/services/api';
 import type { Perfil } from '@/types/rutago';
+
+type DatosPasajero = NonNullable<Perfil['pasajero']>;
 
 function mensajeError(error: unknown): string {
   const err = error as AxiosError<{ message?: string }>;
@@ -41,6 +43,10 @@ export default function MiPerfilScreen() {
   const [contrasenaActual, setContrasenaActual] = useState('');
   const [nuevaContrasena, setNuevaContrasena] = useState('');
   const [confirmarContrasena, setConfirmarContrasena] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [numeroDocumento, setNumeroDocumento] = useState('');
+  const [fechaNacimiento, setFechaNacimiento] = useState('');
 
   const cargar = useCallback(async () => {
     try {
@@ -50,6 +56,10 @@ export default function MiPerfilScreen() {
       setNombres(datos.nombres ?? '');
       setApellidos(datos.apellidos ?? '');
       setCorreo(datos.correo ?? '');
+      setTelefono(datos.pasajero?.telefono ?? '');
+      setDireccion(datos.pasajero?.direccion ?? '');
+      setNumeroDocumento(datos.pasajero?.numeroDocumento ?? '');
+      setFechaNacimiento(datos.pasajero?.fechaNacimiento ?? '');
     } catch (error) {
       console.error('Error al cargar perfil:', mensajeError(error));
       Alert.alert('Error', mensajeError(error));
@@ -80,6 +90,41 @@ export default function MiPerfilScreen() {
       await guardarUsuarioSesion(datos);
       await refrescarSesion();
       Alert.alert('Listo', 'Tus datos personales se actualizaron.');
+    } catch (error) {
+      Alert.alert('Error', mensajeError(error));
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const guardarPerfilPasajero = async () => {
+    if (numeroDocumento.length > 50 || telefono.length > 30 || direccion.length > 300) {
+      Alert.alert(
+        'Datos inválidos',
+        'Revisa la longitud del documento, teléfono y dirección.',
+      );
+      return;
+    }
+    if (
+      fechaNacimiento &&
+      !/^\d{4}-\d{2}-\d{2}$/.test(fechaNacimiento)
+    ) {
+      Alert.alert('Fecha inválida', 'Usa el formato AAAA-MM-DD.');
+      return;
+    }
+
+    try {
+      setGuardando(true);
+      const cuerpo: Record<string, string> = {
+        telefono: telefono.trim(),
+        direccion: direccion.trim(),
+      };
+      if (numeroDocumento.trim()) cuerpo.numeroDocumento = numeroDocumento.trim();
+      if (fechaNacimiento) cuerpo.fechaNacimiento = fechaNacimiento;
+      const respuesta = await api.put<unknown>('/pasajeros/me/perfil', cuerpo);
+      const datos = extraerDatos<DatosPasajero>(respuesta.data);
+      setPerfil((anterior) => ({ ...anterior, pasajero: datos }));
+      Alert.alert('Listo', 'Tus datos de pasajero se actualizaron.');
     } catch (error) {
       Alert.alert('Error', mensajeError(error));
     } finally {
@@ -120,7 +165,8 @@ export default function MiPerfilScreen() {
     }
   };
 
-  const rol = perfil?.rol?.nombreRol ?? nombreRol(usuario?.rolId ?? usuario?.rol?.id);
+  const rolId = Number(usuario?.rolId ?? usuario?.rol?.id ?? perfil?.rol?.id);
+  const rol = perfil?.rol?.nombreRol ?? nombreRol(rolId);
 
   return (
     <>
@@ -221,6 +267,52 @@ export default function MiPerfilScreen() {
                 <Text style={styles.textoBoton}>Guardar cambios</Text>
               </Pressable>
             </View>
+
+            {rolId === ROLES.PASAJERO && (
+              <>
+                <Text style={styles.subtitulo}>Datos de pasajero</Text>
+                <View style={styles.tarjeta}>
+                  <Text style={styles.etiqueta}>Teléfono</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={telefono}
+                    onChangeText={setTelefono}
+                    keyboardType="phone-pad"
+                    maxLength={30}
+                  />
+                  <Text style={styles.etiqueta}>Dirección</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={direccion}
+                    onChangeText={setDireccion}
+                    maxLength={300}
+                  />
+                  <Text style={styles.etiqueta}>Número de documento</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={numeroDocumento}
+                    onChangeText={setNumeroDocumento}
+                    maxLength={50}
+                  />
+                  <Text style={styles.etiqueta}>Fecha de nacimiento (AAAA-MM-DD)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={fechaNacimiento}
+                    onChangeText={setFechaNacimiento}
+                    placeholder="1995-05-20"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="numbers-and-punctuation"
+                    maxLength={10}
+                  />
+                  <Pressable
+                    style={[styles.boton, guardando && styles.botonDeshabilitado]}
+                    onPress={() => void guardarPerfilPasajero()}
+                    disabled={guardando}>
+                    <Text style={styles.textoBoton}>Guardar datos de pasajero</Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
 
             <Text style={styles.subtitulo}>Contraseña</Text>
             <View style={styles.tarjeta}>

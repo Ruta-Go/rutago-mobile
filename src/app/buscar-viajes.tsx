@@ -194,6 +194,18 @@ export default function BuscarViajesScreen() {
                 <Text style={styles.dato}>Costo: ${ruta.costo}</Text>
               )}
 
+              <Pressable
+                style={styles.boton}
+                onPress={() =>
+                  router.push(
+                    `/crear-viaje?rutaId=${ruta.id}` as Parameters<
+                      typeof router.push
+                    >[0],
+                  )
+                }>
+                <Text style={styles.textoBoton}>Solicitar este viaje</Text>
+              </Pressable>
+
               <View style={styles.separador} />
               <Text style={styles.subtitulo}>Horarios disponibles</Text>
 
