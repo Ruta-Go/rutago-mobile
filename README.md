@@ -68,6 +68,20 @@ Todos los comandos pasan sin errores. No se generan artefactos dentro del reposi
 
 `.github/workflows/ci.yml` repite `npm ci`, `npx tsc --noEmit` y `npm run lint` en pushes y PRs de `feature-ASEG1999`, `dev` y `main`. El build/submit con EAS queda pendiente de credenciales de Expo.
 
+## EAS (preparado, sin ejecutar)
+
+`eas.json` define los perfiles `development`, `preview` y `production`. Aún no se han generado binarios ni enviado nada a tiendas. Cuando exista cuenta Expo y permisos sobre el proyecto:
+
+```bash
+npx eas-cli login
+npx eas-cli init
+npx eas-cli build --profile preview --platform android
+npx eas-cli build --profile production --platform ios
+npx eas-cli submit --profile production --platform android
+```
+
+Antes del build definitivo confirma `EXPO_PUBLIC_API_URL` y `PASSWORD_RESET_URL` con la URL del backend elegida.
+
 ## Sprints y cierre
 
 Consulta [`SPRINTS.md`](SPRINTS.md) para el resumen cross-repo, commits, evidencia de pruebas y riesgos pendientes.
