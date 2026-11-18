@@ -1,5 +1,15 @@
-import axios from 'axios';
-import { api, guardarSesion } from './api';
+import { isAxiosError } from 'axios';
+import { api, guardarSesion, type RespuestaApi } from './api';
+
+type MensajeRespuesta = RespuestaApi<never> & { message?: string };
+
+function mensajeDe(error: unknown, respaldo: string): string {
+  if (isAxiosError(error)) {
+    const data = error.response?.data as { message?: string } | undefined;
+    return data?.message || respaldo;
+  }
+  return error instanceof Error ? error.message : respaldo;
+}
 
 export interface LoginResponse {
   success: boolean;
@@ -33,12 +43,34 @@ export async function iniciarSesion(
     await guardarSesion(data.token, data.refreshToken, data.usuario);
     return data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const mensaje = (
-        error.response?.data as { message?: string } | undefined
-      )?.message;
-      throw new Error(mensaje || 'No fue posible iniciar sesión');
+    throw new Error(mensajeDe(error, 'No fue posible iniciar sesión'));
+  }
+}
+
+/** Solicita el enlace de recuperación. El backend responde de forma uniforme. */
+export async function solicitarRecuperacion(correo: string): Promise<void> {
+  const { data } = await api.post<MensajeRespuesta>(
+    '/usuarios/recuperar-contrasena',
+    { correo: correo.trim() },
+  );
+  if (!data?.success) {
+    throw new Error(data?.message || 'No se pudo solicitar la recuperación');
+  }
+}
+
+export async function cambiarContrasenaConToken(
+  token: string,
+  nuevaContrasena: string,
+): Promise<void> {
+  try {
+    const { data } = await api.post<MensajeRespuesta>(
+      '/usuarios/cambiar-contrasena',
+      { token, nuevaContrasena },
+    );
+    if (!data?.success) {
+      throw new Error(data?.message || 'No se pudo cambiar la contraseña');
     }
-    throw error;
+  } catch (error) {
+    throw new Error(mensajeDe(error, 'No se pudo cambiar la contraseña'));
   }
 }

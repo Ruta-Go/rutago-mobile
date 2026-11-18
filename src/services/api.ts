@@ -1,19 +1,62 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import {
+  create,
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 
-const API_URL = 'https://rutago-backend-a303.onrender.com';
+// EXPO_PUBLIC_ se incrusta en el bundle; nunca poner secretos aquí.
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL || 'https://rutago-backend-a303.onrender.com';
 
 const CLAVE_TOKEN = 'rutago_token';
 const CLAVE_REFRESH = 'rutago_refresh_token';
 const CLAVE_USUARIO = 'rutago_user';
 
-export const api = axios.create({
+export const api = create({
   baseURL: `${API_URL}/api`,
   timeout: 15000,
 });
 
-const clienteRefresh = axios.create({ timeout: 15000 });
+const clienteRefresh = create({ timeout: 15000 });
+
+export interface RespuestaApi<T = unknown> {
+  success?: boolean;
+  data?: T;
+  message?: string;
+}
+
+/** La mayoría de endpoints responden { success, data, message? }. */
+export function extraerDatos<T>(cuerpo: unknown): T {
+  if (
+    cuerpo &&
+    typeof cuerpo === 'object' &&
+    'data' in (cuerpo as Record<string, unknown>)
+  ) {
+    return (cuerpo as RespuestaApi<T>).data as T;
+  }
+  return cuerpo as T;
+}
+
+export function extraerLista<T>(cuerpo: unknown): T[] {
+  const datos = extraerDatos<unknown>(cuerpo);
+  return Array.isArray(datos) ? (datos as T[]) : [];
+}
+
+type SuscriptorSesion = () => void;
+const suscriptoresSesion = new Set<SuscriptorSesion>();
+
+export function suscribirseASesion(suscriptor: SuscriptorSesion) {
+  suscriptoresSesion.add(suscriptor);
+  return () => {
+    suscriptoresSesion.delete(suscriptor);
+  };
+}
+
+function notificarSesion() {
+  suscriptoresSesion.forEach((suscriptor) => suscriptor());
+}
 
 export async function guardarSesion(
   token: string,
@@ -23,12 +66,25 @@ export async function guardarSesion(
   await SecureStore.setItemAsync(CLAVE_TOKEN, token);
   await SecureStore.setItemAsync(CLAVE_REFRESH, refreshToken);
   await SecureStore.setItemAsync(CLAVE_USUARIO, JSON.stringify(usuario));
+  notificarSesion();
 }
 
 export async function limpiarSesion() {
   await SecureStore.deleteItemAsync(CLAVE_TOKEN);
   await SecureStore.deleteItemAsync(CLAVE_REFRESH);
   await SecureStore.deleteItemAsync(CLAVE_USUARIO);
+  notificarSesion();
+}
+
+export async function leerSesion(): Promise<{
+  token: string | null;
+  usuario: unknown | null;
+}> {
+  const [token, usuario] = await Promise.all([
+    SecureStore.getItemAsync(CLAVE_TOKEN),
+    SecureStore.getItemAsync(CLAVE_USUARIO),
+  ]);
+  return { token, usuario: usuario ? JSON.parse(usuario) : null };
 }
 
 type ResolverCola = (token: string | null) => void;

@@ -12,9 +12,11 @@ import { router } from 'expo-router';
 
 import { Button, Card, Input, useToast } from '@/components/ui';
 import { Colores, Espacios, Radios, Tipografia } from '@/constants/tema';
+import { useSesion } from '@/hooks/useSesion';
 import { iniciarSesion } from '@/services/authService';
 
 export default function HomeScreen() {
+  const { refrescarSesion } = useSesion();
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [cargando, setCargando] = useState(false);
@@ -44,6 +46,7 @@ export default function HomeScreen() {
       setCargando(true);
 
       await iniciarSesion(correo.trim(), contrasena);
+      await refrescarSesion();
 
       mostrar('Sesión iniciada correctamente', { tipo: 'exito' });
       router.replace('/dashboard');
@@ -110,11 +113,7 @@ export default function HomeScreen() {
 
           <Pressable
             style={styles.olvido}
-            onPress={() =>
-              mostrar('La recuperación de contraseña aún no está conectada', {
-                tipo: 'info',
-              })
-            }>
+            onPress={() => router.push('/recuperar-password')}>
             <Text style={styles.olvidoTexto}>¿Olvidaste tu contraseña?</Text>
           </Pressable>
 
@@ -130,7 +129,7 @@ export default function HomeScreen() {
 
             <Pressable
               onPress={() =>
-                mostrar('El registro desde esta pantalla aún no está conectado', {
+                mostrar('El registro está disponible en la versión web de RutaGo', {
                   tipo: 'info',
                 })
               }>

@@ -1,56 +1,73 @@
-# Welcome to your Expo app 👋
+# RutaGo · App móvil
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Cliente móvil de RutaGo construido con **Expo SDK 58**, React Native, Expo Router y TypeScript. Comparte el backend con la versión web (`rutago-backend`).
 
-## Get started
+## Configuración
 
-1. Install dependencies
+1. Instala dependencias:
 
 ```bash
 npm install
 ```
 
-2. Start the app
+2. Copia el ejemplo de entorno y ajusta la URL del backend:
 
 ```bash
-npx expo start
+cp .env.example .env
 ```
 
-In the output, you'll find options to open the app in a
+```env
+EXPO_PUBLIC_API_URL=https://rutago-backend-a303.onrender.com
+```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+`EXPO_PUBLIC_API_URL` se incrusta en el bundle (Expo sólo expone variables `EXPO_PUBLIC_`). **Nunca pongas secretos aquí.** El cliente añade `/api` a esta URL.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+3. Inicia la app:
 
 ```bash
-npm run reset-project
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Rutas y sesión
 
-### Other setup steps
+| Ruta | Acceso | Descripción |
+| --- | --- | --- |
+| `/` | Público | Inicio de sesión. |
+| `/recuperar-password` | Público | Solicitud de enlace y restablecimiento con `?token=`. |
+| `/dashboard` | Autenticado | Panel por rol real (`Administrador`, `Conductor`, `Pasajero`, `Entidad Externa`). |
+| `/buscar-viajes` | Autenticado | Búsqueda real de rutas por destino y origen. |
+| `/explore` | Público | Pantalla de ejemplo del template Expo. |
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+La sesión se guarda en `expo-secure-store` (`token`, `refreshToken`, `rutago_user`). El interceptor de Axios renueva el access token con `/api/auth/refresh`; si falla, borra **las tres** claves y redirige al login. `src/app/_layout.tsx` usa `Stack.Protected` para impedir navegación a pantallas privadas sin sesión. El perfil se toma del backend (no se confía en un rol escrito en el cliente).
 
-## Learn more
+### Deep link de recuperación
 
-To learn more about developing your project with Expo, look at the following resources:
+El esquema configurado en `app.json` es `rutagomobile`. Para que el correo abra la app directamente, configura en el backend:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```env
+PASSWORD_RESET_URL=rutagomobile://recuperar-password
+```
 
-## Join the community
+Enlace resultante: `rutagomobile://recuperar-password?token=<token>`. Sin esa variable, el backend usa `FRONTEND_URL/recuperar-password` (versión web).
 
-Join our community of developers creating universal apps.
+## Contrato de API
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Las respuestas exitosas usan `{ success: true, data: ... }`. Los helpers `extraerDatos` y `extraerLista` (`src/services/api.ts`) hacen el unwrap.
+- `GET /api/rutas/destino/:destino` devuelve rutas con `horarios: string[]` (sólo horas). El DTO del backend **no incluye** placa, empresa ni estado del vehículo, por lo que la app no inventa esos datos.
+- Un `404` en la búsqueda se trata como “sin resultados”, no como error de red.
+
+## Verificación
+
+```bash
+npx tsc --noEmit
+npm run lint
+npx expo export --platform web --output-dir <ruta-temporal>
+```
+
+Todos los comandos pasan sin errores. No se generan artefactos dentro del repositorio.
+
+## Funciones pendientes (sin simular éxito)
+
+- Publicación/gestión de viajes, solicitudes y perfil editable desde la app; hoy se indican como disponibles en la versión web.
+- GPS/WebSocket y notificaciones push.
+- CI/CD con EAS build/submit (requiere cuenta y credenciales de Expo).
