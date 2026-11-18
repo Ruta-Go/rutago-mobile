@@ -26,6 +26,9 @@ export type Viaje = {
     id?: number;
     placa?: string;
     capacidadPasajeros?: number | null;
+    latitud?: number | null;
+    longitud?: number | null;
+    ultimaActualizacion?: string;
   };
   estado?: { id?: number; nombre?: string };
   precioEstimado?: number | null;

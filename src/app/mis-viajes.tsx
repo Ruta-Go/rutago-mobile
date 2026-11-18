@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -13,8 +14,9 @@ import { isAxiosError, type AxiosError } from 'axios';
 import { Stack, router } from 'expo-router';
 
 import { ROLES } from '@/constants/roles';
+import { useRealtime, type EventoTiempoReal } from '@/hooks/useRealtime';
 import { useSesion } from '@/hooks/useSesion';
-import { api, extraerLista } from '@/services/api';
+import { api, extraerDatos, extraerLista } from '@/services/api';
 import type { Viaje } from '@/types/rutago';
 import {
   ESTADO_VIAJE,
@@ -33,17 +35,73 @@ function mensajeError(error: unknown): string {
   return 'No se pudo completar la operación.';
 }
 
+type UbicacionEnVivo = {
+  viajeId?: number | null;
+  vehiculoId?: number | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  velocidadActual?: number | null;
+  ultimaActualizacion?: string;
+  fecha?: string;
+  origen?: 'rest' | 'websocket';
+};
+
 export default function MisViajesScreen() {
   const { usuario } = useSesion();
   const rolId = Number(usuario?.rolId ?? usuario?.rol?.id);
   const [viajes, setViajes] = useState<Viaje[]>([]);
+  const [ubicaciones, setUbicaciones] = useState<Record<number, UbicacionEnVivo>>(
+    {},
+  );
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
+
+  const cargarUbicaciones = useCallback(async (lista: Viaje[]) => {
+    const activos = lista.filter((viaje) => {
+      const id = idEstado(viaje);
+      return (
+        (id === ESTADO_VIAJE.ACEPTADO || id === ESTADO_VIAJE.EN_CURSO) &&
+        Boolean(viaje.vehiculo?.id)
+      );
+    });
+
+    if (activos.length === 0) {
+      setUbicaciones({});
+      return;
+    }
+
+    const resultados = await Promise.all(
+      activos.map(async (viaje) => {
+        const vehiculoId = viaje.vehiculo?.id;
+        if (!vehiculoId) return null;
+        try {
+          const respuesta = await api.get<unknown>(
+            `/vehiculos/${vehiculoId}/ubicacion`,
+          );
+          return {
+            ...extraerDatos<UbicacionEnVivo>(respuesta.data),
+            origen: 'rest' as const,
+          };
+        } catch (error) {
+          console.warn(`[ubicación] viaje ${viaje.id}:`, mensajeError(error));
+          return null;
+        }
+      }),
+    );
+
+    const datos: Record<number, UbicacionEnVivo> = {};
+    resultados.forEach((resultado, indice) => {
+      if (resultado) datos[activos[indice].id] = resultado;
+    });
+    setUbicaciones(datos);
+  }, []);
 
   const cargar = useCallback(async () => {
     try {
       const respuesta = await api.get<unknown>('/viajes/me/mis-viajes');
-      setViajes(extraerLista<Viaje>(respuesta.data));
+      const lista = extraerLista<Viaje>(respuesta.data);
+      setViajes(lista);
+      await cargarUbicaciones(lista);
     } catch (error) {
       console.error('Error al cargar mis viajes:', mensajeError(error));
       Alert.alert('Error', mensajeError(error));
@@ -51,11 +109,50 @@ export default function MisViajesScreen() {
       setCargando(false);
       setRefrescando(false);
     }
-  }, []);
+  }, [cargarUbicaciones]);
 
   useEffect(() => {
     void Promise.resolve().then(cargar);
   }, [cargar]);
+
+  const manejarUbicacion = useCallback((evento: EventoTiempoReal) => {
+    if (evento.tipo !== 'ubicacion' || !evento.payload) return;
+    const dato = evento.payload as unknown as UbicacionEnVivo;
+    if (!dato.viajeId) return;
+    const viajeId = Number(dato.viajeId);
+    setUbicaciones((actuales) => ({
+      ...actuales,
+      [viajeId]: {
+        ...actuales[viajeId],
+        ...dato,
+        fecha: evento.fecha,
+        origen: 'websocket' as const,
+      },
+    }));
+  }, []);
+
+  const salasViaje = useMemo(
+    () =>
+      viajes
+        .filter((viaje) => {
+          const id = idEstado(viaje);
+          return id === ESTADO_VIAJE.ACEPTADO || id === ESTADO_VIAJE.EN_CURSO;
+        })
+        .map((viaje) => `viaje:${viaje.id}`),
+    [viajes],
+  );
+
+  useRealtime(manejarUbicacion, salasViaje);
+
+  const abrirMapa = async (latitud: number, longitud: number) => {
+    const url = `https://www.openstreetmap.org/?mlat=${latitud}&mlon=${longitud}#map=17/${latitud}/${longitud}`;
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.warn('[mapa] no se pudo abrir', error);
+      Alert.alert('Error', 'No se pudo abrir el mapa.');
+    }
+  };
 
   const ejecutarAccion = (
     viaje: Viaje,
@@ -132,6 +229,11 @@ export default function MisViajesScreen() {
         {!cargando &&
           viajes.map((viaje) => {
             const id = estado(viaje);
+            const ubicacion = ubicaciones[viaje.id];
+            const latitud = ubicacion?.latitud ?? viaje.vehiculo?.latitud;
+            const longitud = ubicacion?.longitud ?? viaje.vehiculo?.longitud;
+            const viajeActivo =
+              id === ESTADO_VIAJE.ACEPTADO || id === ESTADO_VIAJE.EN_CURSO;
             return (
               <View key={viaje.id} style={styles.tarjeta}>
                 <View style={styles.cabecera}>
@@ -156,6 +258,45 @@ export default function MisViajesScreen() {
                 ) : null}
                 {viaje.precioEstimado != null ? (
                   <Text style={styles.dato}>Precio estimado: ${viaje.precioEstimado}</Text>
+                ) : null}
+
+                {viajeActivo ? (
+                  <View style={styles.ubicacion}>
+                    <Text style={styles.ubicacionTitulo}>
+                      {ubicacion?.origen === 'websocket'
+                        ? '📍 Ubicación en vivo'
+                        : '📍 Última ubicación reportada'}
+                    </Text>
+                    {latitud != null && longitud != null ? (
+                      <>
+                        <Text style={styles.ubicacionDato}>
+                          Latitud: {Number(latitud).toFixed(5)}
+                        </Text>
+                        <Text style={styles.ubicacionDato}>
+                          Longitud: {Number(longitud).toFixed(5)}
+                        </Text>
+                        <Text style={styles.ubicacionDato}>
+                          Actualizado:{' '}
+                          {fechaLegible(
+                            ubicacion?.fecha ??
+                              ubicacion?.ultimaActualizacion ??
+                              viaje.vehiculo?.ultimaActualizacion,
+                          )}
+                        </Text>
+                        <Pressable
+                          style={styles.botonMapa}
+                          onPress={() =>
+                            void abrirMapa(Number(latitud), Number(longitud))
+                          }>
+                          <Text style={styles.textoBotonMapa}>Abrir mapa</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <Text style={styles.ubicacionDato}>
+                        El conductor todavía no ha reportado coordenadas.
+                      </Text>
+                    )}
+                  </View>
                 ) : null}
 
                 <View style={styles.acciones}>
@@ -272,6 +413,29 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   dato: { color: '#374151', fontSize: 14, marginBottom: 7 },
+  ubicacion: {
+    backgroundColor: '#F3F8F5',
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 14,
+  },
+  ubicacionTitulo: {
+    color: '#07883F',
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  ubicacionDato: { color: '#374151', fontSize: 13, marginBottom: 4 },
+  botonMapa: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#07883F',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 6,
+  },
+  textoBotonMapa: { color: '#07883F', fontSize: 13, fontWeight: '700' },
   acciones: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12 },
   botonAccion: {
     backgroundColor: '#07883F',
