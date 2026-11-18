@@ -1,5 +1,4 @@
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -24,6 +23,7 @@ type Opcion = {
     | '/mis-viajes'
     | '/mis-solicitudes'
     | '/mi-perfil'
+    | '/panel-gestion'
     | '/notificaciones';
 };
 
@@ -110,6 +110,7 @@ const OPCIONES_GESTION: Opcion[] = [
     titulo: 'Panel de gestión',
     descripcion: 'Administra entidades, rutas y viajes',
     icono: '🛠️',
+    ruta: '/panel-gestion',
   },
   {
     titulo: 'Mis viajes',
@@ -139,17 +140,12 @@ export default function DashboardScreen() {
   let opciones: Opcion[] = [];
   if (rolId === ROLES.PASAJERO) opciones = OPCIONES_PASAJERO;
   else if (rolId === ROLES.CONDUCTOR) opciones = OPCIONES_CONDUCTOR;
-  else if (rolValido) opciones = OPCIONES_GESTION;
+  else if (rolId === ROLES.ADMINISTRADOR) opciones = OPCIONES_GESTION;
 
   const manejarOpcion = (opcion: Opcion) => {
     if (opcion.ruta) {
       router.push(opcion.ruta as Parameters<typeof router.push>[0]);
-      return;
     }
-    Alert.alert(
-      opcion.titulo,
-      'Esta función está disponible en la versión web de RutaGo.',
-    );
   };
 
   return (

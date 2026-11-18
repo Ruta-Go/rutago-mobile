@@ -2,14 +2,12 @@ export const ROLES = {
   ADMINISTRADOR: 1,
   CONDUCTOR: 2,
   PASAJERO: 3,
-  ENTIDAD: 4,
 } as const;
 
 const NOMBRES_ROL: Record<number, string> = {
   [ROLES.ADMINISTRADOR]: 'Administrador',
   [ROLES.CONDUCTOR]: 'Conductor',
   [ROLES.PASAJERO]: 'Pasajero',
-  [ROLES.ENTIDAD]: 'Entidad Externa',
 };
 
 export function nombreRol(rolId: number | string | null | undefined): string {
@@ -17,6 +15,13 @@ export function nombreRol(rolId: number | string | null | undefined): string {
   return NOMBRES_ROL[id] ?? 'Rol no reconocido';
 }
 
+/** La app móvil sólo atiende estos tres roles. Entidad Externa queda fuera del alcance móvil. */
+export const ROLES_MOVILES = [
+  ROLES.ADMINISTRADOR,
+  ROLES.CONDUCTOR,
+  ROLES.PASAJERO,
+] as const;
+
 export function esRolValido(rolId: number | string | null | undefined): boolean {
-  return Number(rolId) in NOMBRES_ROL;
+  return ROLES_MOVILES.includes(Number(rolId) as (typeof ROLES_MOVILES)[number]);
 }
