@@ -36,7 +36,7 @@ npm start
 | `/recuperar-password` | Público | Solicitud de enlace y restablecimiento con `?token=`. |
 | `/dashboard` | Autenticado | Panel por rol real (`Administrador`, `Conductor`, `Pasajero`, `Entidad Externa`). |
 | `/buscar-viajes` | Autenticado | Búsqueda real de rutas por destino y origen. |
-| `/mis-viajes` | Autenticado | Viajes propios desde `/viajes/me/mis-viajes`; el conductor puede iniciar/finalizar/cancelar y el pasajero cancelar. |
+| `/mis-viajes` | Autenticado | Viajes propios desde `/viajes/me/mis-viajes`; el conductor puede iniciar/finalizar/cancelar y el pasajero cancelar. Los viajes aceptados/en curso muestran la posición inicial de `/vehiculos/:id/ubicacion` y la actualizan con eventos `ubicacion` de la sala `viaje:<id>`. |
 | `/mis-solicitudes` | Autenticado | Pasajero: solicitudes pendientes filtradas de su historial. Conductor: `/viajes/disponibles` con aceptación real. |
 | `/mi-perfil` | Autenticado | Lectura y edición de `/usuarios/me/perfil` y cambio de contraseña con `/usuarios/me/contrasena`. |
 | `/notificaciones` | Autenticado | Lista persistida en `/notificaciones`, marca de leído y refresco por WebSocket autenticado. |
@@ -61,6 +61,7 @@ Enlace resultante: `rutagomobile://recuperar-password?token=<token>`. Sin esa va
 - Un `404` en la búsqueda se trata como “sin resultados”, no como error de red.
 - `GET /viajes/me/mis-viajes`, `GET /viajes/disponibles`, `GET /notificaciones`, `GET/PUT /usuarios/me/perfil` y `PUT /usuarios/me/contrasena` son las fuentes reales de las nuevas pantallas. Ninguna usa datos de ejemplo.
 - El canal en tiempo real escucha `ws(s)://<backend>/ws?token=<accessToken>` con el token de la sesión. Los eventos `notificacion` y `notificacion_leida` refrescan la lista; si el socket no conecta, la pantalla sigue funcionando con el REST y **no simula** eventos.
+- Para el seguimiento, el cliente se suscribe a `viaje:<id>` (validado en backend por propiedad real) y aplica los eventos `ubicacion`. El botón “Abrir mapa” abre OpenStreetMap con las coordenadas reportadas; no se dibuja un bus inventado cuando no hay datos.
 
 ## Verificación
 
@@ -95,5 +96,5 @@ Consulta [`SPRINTS.md`](SPRINTS.md) para el resumen cross-repo, commits, evidenc
 ## Funciones pendientes (sin simular éxito)
 
 - Publicación de nuevos viajes y panel administrativo desde la app: siguen en la versión web; el móvil ya gestiona viajes propios, solicitudes, perfil y notificaciones internas con datos reales.
-- Seguimiento de vehículos en un mapa en tiempo real y push del sistema operativo: el backend ya expone el WebSocket y las notificaciones persistentes, pero falta la vista de mapa y un proveedor de push externo.
+- Mapa embebido dentro de la app y push del sistema operativo: las coordenadas en vivo y la apertura del mapa externo ya funcionan con datos reales; el mapa nativo integrado requiere una dependencia adicional y el push requiere proveedor externo.
 - CI/CD con EAS build/submit (requiere cuenta y credenciales de Expo).
