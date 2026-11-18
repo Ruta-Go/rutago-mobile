@@ -22,7 +22,8 @@ Cierre integral de RutaGo **sin reconstruir** el proyecto: se auditaron los tres
 | Sprint 7 / T3 · Móvil funcional | `rutago-mobile` | Mis viajes, Mis solicitudes, Mi perfil y Notificaciones conectados a API real + WebSocket; dashboard sin placeholders en esas opciones | `908eec5` | Sí (`e29ba56..270e45e`) |
 | Sprint 7 / T4 · Mapa web en vivo | `rutago-frontend` | Posición inicial por REST y actualización por WebSocket en `/viajes/:id/mapa` | `d63db00` | Sí (`34d719d..fe09678`) |
 | Sprint 7 / T5 · Campana web | `rutago-frontend` | `GET/PATCH /notificaciones` y eventos WS en el `Navbar`, con contador real | `e52d5a5` | Sí (`34d719d..fe09678`) |
-| Sprint 7 / T6 · GPS en móvil | `rutago-mobile` | Posición inicial por REST, eventos `ubicacion` en `viaje:<id>` y apertura de mapa externo con coordenadas reales | `3ebcd76` | Sí (`270e45e..3ebcd76`) |
+| Sprint 7 / T6 · GPS en móvil | `rutago-mobile` | Posición inicial por REST, eventos `ubicacion` en `viaje:<id>` y apertura de mapa externo con coordenadas reales | `3ebcd76` | Sí (`270e45e..83437c1`) |
+| Sprint 7 / T7 · Mapa de flota | `rutago-frontend` | `/vehiculos/mapa`: posiciones iniciales de `GET /vehiculos`, eventos por sala `vehiculo:<id>` y listado lateral real | `903cefa` | Sí (`fe09678..dd62b4c`) |
 
 ## Verificación ejecutada
 
@@ -30,7 +31,7 @@ Cierre integral de RutaGo **sin reconstruir** el proyecto: se auditaron los tres
 | --- | --- | --- |
 | `rutago-backend` | `npm test` | 35/35 pruebas correctas (18 originales + 17 de tiempo real, GPS, geobúsqueda y notificaciones) |
 | `rutago-frontend` | `npm run lint` | 0 errores; warnings no bloqueantes de `exhaustive-deps` |
-| `rutago-frontend` | `npx vite build --outDir <ruta-temporal>` | 1999 módulos transformados, sin errores |
+| `rutago-frontend` | `npx vite build --outDir <ruta-temporal>` | 2002 módulos transformados, sin errores |
 | `rutago-mobile` | `npx tsc --noEmit` | Sin errores |
 | `rutago-mobile` | `npm run lint` | Sin errores (equivale a `npx expo lint`) |
 | `rutago-mobile` | `npx expo export --platform web --output-dir <ruta-temporal>` | 14 bundles y 11 rutas estáticas exportadas, sin errores |
