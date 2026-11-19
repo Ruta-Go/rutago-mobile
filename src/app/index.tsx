@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,21 +13,41 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { Button, Card, Input, useToast } from '@/components/ui';
 import { Colores, Espacios, Radios, Tipografia } from '@/constants/tema';
-import { useSesion } from '@/hooks/useSesion';
-import { iniciarSesion } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  obtenerEstadoBiometria,
+  type EstadoBiometria,
+} from '@/services/biometria';
 import { esCorreoValido } from '@/utils/validacion';
 
 export default function HomeScreen() {
   const parametros = useLocalSearchParams<{ correo?: string }>();
-  const { refrescarSesion } = useSesion();
+  const { iniciarSesion, iniciarSesionBiometrica } = useAuth();
   const [correo, setCorreo] = useState(
     typeof parametros.correo === 'string' ? parametros.correo : '',
   );
   const [contrasena, setContrasena] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [cargandoBiometria, setCargandoBiometria] = useState(false);
+  const [biometria, setBiometria] = useState<EstadoBiometria>({
+    disponible: false,
+    tipo: 'ninguna',
+    etiqueta: '',
+  });
   const [errorCorreo, setErrorCorreo] = useState<string | undefined>();
   const [errorContrasena, setErrorContrasena] = useState<string | undefined>();
   const { mostrar } = useToast();
+
+  /** Consulté el hardware real para mostrar el acceso biométrico sólo cuando existe. */
+  useEffect(() => {
+    let activo = true;
+    void obtenerEstadoBiometria().then((estado) => {
+      if (activo) setBiometria(estado);
+    });
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const manejarInicioSesion = async () => {
     if (cargando) return;
@@ -55,7 +76,6 @@ export default function HomeScreen() {
       setCargando(true);
 
       await iniciarSesion(correo.trim(), contrasena);
-      await refrescarSesion();
 
       mostrar('Sesión iniciada correctamente', { tipo: 'exito' });
       router.replace('/dashboard');
@@ -68,6 +88,26 @@ export default function HomeScreen() {
       );
     } finally {
       setCargando(false);
+    }
+  };
+
+  /** Conecté el botón biométrico con la reanudación real de sesión del backend. */
+  const manejarBiometria = async () => {
+    if (cargandoBiometria || cargando) return;
+    setCargandoBiometria(true);
+    try {
+      await iniciarSesionBiometrica();
+      mostrar('Sesión iniciada con biometría', { tipo: 'exito' });
+      router.replace('/dashboard');
+    } catch (error) {
+      mostrar(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo iniciar sesión con biometría',
+        { tipo: 'error' },
+      );
+    } finally {
+      setCargandoBiometria(false);
     }
   };
 
@@ -132,6 +172,29 @@ export default function HomeScreen() {
             cargando={cargando}
             onPress={manejarInicioSesion}
           />
+
+          {biometria.disponible ? (
+            <Pressable
+              testID="boton-biometria"
+              style={styles.biometria}
+              disabled={cargandoBiometria || cargando}
+              onPress={manejarBiometria}>
+              <MaterialCommunityIcons
+                name={
+                  biometria.tipo === 'faceid'
+                    ? 'face-recognition'
+                    : 'fingerprint'
+                }
+                size={22}
+                color={Colores.primario}
+              />
+              <Text style={styles.biometriaTexto}>
+                {cargandoBiometria
+                  ? 'Verificando identidad...'
+                  : `Entrar con ${biometria.etiqueta}`}
+              </Text>
+            </Pressable>
+          ) : null}
 
           <View style={styles.registro}>
             <Text style={styles.registroEtiqueta}>¿No tienes una cuenta? </Text>
@@ -217,6 +280,23 @@ const styles = StyleSheet.create({
     color: Colores.primario,
     fontSize: Tipografia.etiqueta,
     fontWeight: '600',
+  },
+  biometria: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Espacios.sm,
+    minHeight: 48,
+    marginTop: Espacios.md,
+    borderRadius: Radios.grande,
+    borderWidth: 1,
+    borderColor: Colores.borde,
+    backgroundColor: Colores.fondo,
+  },
+  biometriaTexto: {
+    color: Colores.primario,
+    fontSize: Tipografia.etiqueta,
+    fontWeight: '700',
   },
   registro: {
     flexDirection: 'row',
