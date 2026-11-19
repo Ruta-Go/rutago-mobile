@@ -28,6 +28,38 @@ import {
   tituloRuta,
 } from '@/utils/viajes';
 
+function trazoDeRuta(geometria?: string | null): PuntoMapa[] {
+  if (!geometria) return [];
+  try {
+    const parsed = JSON.parse(geometria) as {
+      type?: string;
+      coordinates?: unknown;
+      geometry?: { coordinates?: unknown };
+    };
+    const coordenadas =
+      parsed.type === 'Feature'
+        ? parsed.geometry?.coordinates
+        : parsed.coordinates;
+    if (!Array.isArray(coordenadas)) return [];
+    return coordenadas
+      .filter(
+        (punto): punto is [unknown, unknown] =>
+          Array.isArray(punto) && punto.length >= 2,
+      )
+      .map(([longitud, latitud]) => ({
+        latitud: Number(latitud),
+        longitud: Number(longitud),
+        tipo: 'ruta' as const,
+      }))
+      .filter(
+        (punto) =>
+          Number.isFinite(punto.latitud) && Number.isFinite(punto.longitud),
+      );
+  } catch {
+    return [];
+  }
+}
+
 function mensajeError(error: unknown): string {
   const err = error as AxiosError<{ message?: string }>;
   if (err.response?.data?.message) return err.response.data.message;
@@ -245,6 +277,7 @@ export default function MisViajesScreen() {
                     },
                   ]
                 : [];
+            const trazo = trazoDeRuta(viaje.ruta?.rutaGeometria);
             return (
               <View key={viaje.id} style={styles.tarjeta}>
                 <View style={styles.cabecera}>
@@ -294,8 +327,14 @@ export default function MisViajesScreen() {
                               viaje.vehiculo?.ultimaActualizacion,
                           )}
                         </Text>
-                        <MapaIntegrado puntos={puntosMapa} altura={220} />
+                        <MapaIntegrado
+                          puntos={puntosMapa}
+                          trazo={trazo}
+                          altura={220}
+                        />
                       </>
+                    ) : trazo.length > 0 ? (
+                      <MapaIntegrado trazo={trazo} altura={220} />
                     ) : (
                       <>
                         <Text style={styles.ubicacionDato}>

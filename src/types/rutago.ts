@@ -39,6 +39,7 @@ export type Viaje = {
     nombre?: string;
     distanciaKm?: number | null;
     tiempoEstimadoMinutos?: number | null;
+    rutaGeometria?: string | null;
     origen?: { id?: number; nombre?: string };
     destino?: { id?: number; nombre?: string };
   };
