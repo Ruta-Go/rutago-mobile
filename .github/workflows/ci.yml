@@ -24,7 +24,8 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Usé Node 24 porque Expo SDK 58 exige Node 22.13 o superior.
+          node-version: 24
           cache: npm
 
       - name: Instalar dependencias
