@@ -45,6 +45,35 @@ export async function registrarNotificaciones(): Promise<string | null> {
   }
 }
 
+export type DestinoPush = '/notificaciones' | '/mis-viajes' | '/dashboard';
+
+const DESTINOS_PERMITIDOS: DestinoPush[] = [
+  '/notificaciones',
+  '/mis-viajes',
+  '/dashboard',
+];
+
+/** Llevé al usuario a una pantalla válida de la app cuando tocó una notificación del sistema. */
+export function escucharTapPush(
+  alTocar: (destino: DestinoPush) => void,
+): () => void {
+  if (Platform.OS === 'web') return () => {};
+
+  const suscripcion = Notificaciones.addNotificationResponseReceivedListener(
+    (respuesta) => {
+      const datos = respuesta.notification.request.content.data as Record<
+        string,
+        unknown
+      >;
+      const destino = DESTINOS_PERMITIDOS.find(
+        (valido) => valido === datos.ruta,
+      );
+      alTocar(destino ?? '/notificaciones');
+    },
+  );
+  return () => suscripcion.remove();
+}
+
 /** Convertí cada evento real del backend en una notificación local inmediata. */
 export async function mostrarNotificacionLocal(
   titulo: string,
