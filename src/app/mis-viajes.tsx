@@ -19,6 +19,7 @@ import { ROLES } from '@/constants/roles';
 import { useRealtime, type EventoTiempoReal } from '@/hooks/useRealtime';
 import { useSesion } from '@/hooks/useSesion';
 import { api, extraerDatos, extraerLista } from '@/services/api';
+import { obtenerConCache } from '@/services/offline';
 import type { Viaje } from '@/types/rutago';
 import {
   ESTADO_VIAJE,
@@ -133,9 +134,17 @@ export default function MisViajesScreen() {
 
   const cargar = useCallback(async () => {
     try {
-      const respuesta = await api.get<unknown>('/viajes/me/mis-viajes');
-      const lista = extraerLista<Viaje>(respuesta.data);
+      const { datos: lista, offline } = await obtenerConCache<Viaje[]>(
+        `mis-viajes-${usuario?.id ?? rolId}`,
+        async () => {
+          const respuesta = await api.get<unknown>('/viajes/me/mis-viajes');
+          return extraerLista<Viaje>(respuesta.data);
+        },
+      );
       setViajes(lista);
+      if (offline) {
+        console.info('[offline] mostré tus viajes guardados del último acceso.');
+      }
       await cargarUbicaciones(lista);
     } catch (error) {
       console.error('Error al cargar mis viajes:', mensajeError(error));
@@ -144,7 +153,7 @@ export default function MisViajesScreen() {
       setCargando(false);
       setRefrescando(false);
     }
-  }, [cargarUbicaciones]);
+  }, [cargarUbicaciones, rolId, usuario]);
 
   useEffect(() => {
     void Promise.resolve().then(cargar);
