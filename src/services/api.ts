@@ -96,6 +96,29 @@ export async function guardarUsuarioSesion(usuario: unknown) {
   notificarSesion();
 }
 
+/** Leí el refresh token desde el almacenamiento seguro para reanudar sesiones biométricas. */
+export async function leerRefreshToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(CLAVE_REFRESH);
+}
+
+/**
+ * Usé el cliente sin interceptores para que un refresh fallido no vuelva a
+ * entrar en el propio interceptor de renovación y se convierta en un bucle.
+ */
+export async function intercambiarRefreshToken(
+  refreshToken: string,
+): Promise<{ token: string; refreshToken: string }> {
+  const { data } = await clienteRefresh.post(`${API_URL}/api/auth/refresh`, {
+    refreshToken,
+  });
+
+  if (!data?.token || !data?.refreshToken) {
+    throw new Error('RESPUESTA_INVALIDA');
+  }
+
+  return { token: data.token, refreshToken: data.refreshToken };
+}
+
 type ResolverCola = (token: string | null) => void;
 type ConfigConReintento = InternalAxiosRequestConfig & { _reintento?: boolean };
 
@@ -112,17 +135,11 @@ async function renovarToken(): Promise<string | null> {
   if (!refreshToken) return null;
 
   try {
-    const { data } = await clienteRefresh.post(`${API_URL}/api/auth/refresh`, {
-      refreshToken,
-    });
+    const tokens = await intercambiarRefreshToken(refreshToken);
 
-    if (!data?.token || !data?.refreshToken) {
-      throw new Error('RESPUESTA_INVALIDA');
-    }
-
-    await SecureStore.setItemAsync(CLAVE_TOKEN, data.token);
-    await SecureStore.setItemAsync(CLAVE_REFRESH, data.refreshToken);
-    return data.token;
+    await SecureStore.setItemAsync(CLAVE_TOKEN, tokens.token);
+    await SecureStore.setItemAsync(CLAVE_REFRESH, tokens.refreshToken);
+    return tokens.token;
   } catch {
     await limpiarSesion();
     router.replace('/');

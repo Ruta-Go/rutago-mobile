@@ -41,6 +41,12 @@
       ],
       "expo-secure-store",
       [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "RutaGo usa Face ID para verificar tu identidad al iniciar sesión."
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "RutaGo usa tu ubicación para reportar el avance del viaje a los pasajeros."
