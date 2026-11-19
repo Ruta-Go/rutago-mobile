@@ -27,7 +27,11 @@ import {
   guardarUsuarioSesion,
 } from '@/services/api';
 import type { Perfil } from '@/types/rutago';
-import { MENSAJE_PASSWORD, validarPassword } from '@/utils/validacion';
+import {
+  MENSAJE_PASSWORD,
+  esCorreoValido,
+  validarPassword,
+} from '@/utils/validacion';
 
 type DatosPasajero = NonNullable<Perfil['pasajero']>;
 
@@ -92,8 +96,13 @@ export default function MiPerfilScreen() {
   }, [cargar]);
 
   const guardar = async () => {
+    if (guardando) return;
     if (!nombres.trim() || !apellidos.trim() || !correo.trim()) {
       Alert.alert('Datos incompletos', 'Completa nombres, apellidos y correo.');
+      return;
+    }
+    if (!esCorreoValido(correo)) {
+      Alert.alert('Correo inválido', 'Ingresa un correo electrónico válido.');
       return;
     }
 
@@ -330,7 +339,11 @@ export default function MiPerfilScreen() {
                 style={[styles.boton, guardando && styles.botonDeshabilitado]}
                 onPress={guardar}
                 disabled={guardando}>
-                <Text style={styles.textoBoton}>Guardar cambios</Text>
+                {guardando ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.textoBoton}>Guardar cambios</Text>
+                )}
               </Pressable>
             </View>
 
@@ -374,7 +387,11 @@ export default function MiPerfilScreen() {
                     style={[styles.boton, guardando && styles.botonDeshabilitado]}
                     onPress={() => void guardarPerfilPasajero()}
                     disabled={guardando}>
-                    <Text style={styles.textoBoton}>Guardar datos de pasajero</Text>
+                    {guardando ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.textoBoton}>Guardar datos de pasajero</Text>
+                    )}
                   </Pressable>
                 </View>
               </>
@@ -395,7 +412,11 @@ export default function MiPerfilScreen() {
                     style={[styles.boton, guardando && styles.botonDeshabilitado]}
                     onPress={() => void guardarLicencia()}
                     disabled={guardando}>
-                    <Text style={styles.textoBoton}>Guardar licencia</Text>
+                    {guardando ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.textoBoton}>Guardar licencia</Text>
+                    )}
                   </Pressable>
 
                   <Text style={styles.etiqueta}>Estado actual</Text>
@@ -454,7 +475,11 @@ export default function MiPerfilScreen() {
                 style={[styles.boton, guardando && styles.botonDeshabilitado]}
                 onPress={cambiarContrasena}
                 disabled={guardando}>
-                <Text style={styles.textoBoton}>Cambiar contraseña</Text>
+                {guardando ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.textoBoton}>Cambiar contraseña</Text>
+                )}
               </Pressable>
             </View>
           </>

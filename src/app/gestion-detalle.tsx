@@ -27,6 +27,7 @@ import {
   numero,
   type Registro,
 } from '@/services/recursos';
+import { esCorreoValido, validarPassword } from '@/utils/validacion';
 
 type Opcion = { id: number | string; etiqueta: string };
 
@@ -93,6 +94,7 @@ export default function GestionDetalleScreen() {
   );
 
   const [valores, setValores] = useState<Record<string, string>>({});
+  const [errores, setErrores] = useState<Record<string, string>>({});
   const [opciones, setOpciones] = useState<Record<string, Opcion[]>>({});
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -176,6 +178,51 @@ export default function GestionDetalleScreen() {
     );
   }
 
+  const validarCampos = (): Record<string, string> => {
+    const nuevosErrores: Record<string, string> = {};
+
+    camposVisibles.forEach((campo) => {
+      const bruto = (valores[campo.nombre] ?? '').trim();
+      if (!bruto) return;
+
+      if (campo.tipo === 'correo' && !esCorreoValido(bruto)) {
+        nuevosErrores[campo.nombre] = 'Ingresa un correo válido.';
+      } else if (
+        campo.tipo === 'password' &&
+        !(editando && campo.soloCrear) &&
+        validarPassword(bruto)
+      ) {
+        nuevosErrores[campo.nombre] = validarPassword(bruto) ?? '';
+      } else if (
+        (campo.tipo === 'numero' || campo.tipo === 'opciones') &&
+        !Number.isFinite(Number(bruto))
+      ) {
+        nuevosErrores[campo.nombre] = 'Debe ser un número válido.';
+      } else if (
+        campo.tipo === 'opciones' &&
+        !(opciones[campo.nombre] ?? []).some(
+          (opcion) => String(opcion.id) === bruto,
+        )
+      ) {
+        nuevosErrores[campo.nombre] = 'Selecciona una opción disponible.';
+      } else if (
+        campo.tipo === 'fecha' &&
+        (!/^\d{4}-\d{2}-\d{2}$/.test(bruto) || Number.isNaN(Date.parse(bruto)))
+      ) {
+        nuevosErrores[campo.nombre] = 'Usa una fecha válida (AAAA-MM-DD).';
+      } else if (
+        campo.tipo === 'hora' &&
+        !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(bruto)
+      ) {
+        nuevosErrores[campo.nombre] = 'Usa una hora válida (HH:mm).';
+      } else if (campo.maxLength && bruto.length > campo.maxLength) {
+        nuevosErrores[campo.nombre] = `Máximo ${campo.maxLength} caracteres.`;
+      }
+    });
+
+    return nuevosErrores;
+  };
+
   const construirPayload = (): Registro => {
     const payload: Registro = {};
     camposVisibles.forEach((campo) => {
@@ -198,6 +245,13 @@ export default function GestionDetalleScreen() {
         'Campos requeridos',
         `Completa: ${faltantes.map((campo) => campo.etiqueta).join(', ')}.`,
       );
+      return;
+    }
+
+    const erroresValidados = validarCampos();
+    setErrores(erroresValidados);
+    if (Object.keys(erroresValidados).length > 0) {
+      Alert.alert('Datos inválidos', 'Revisa los campos marcados en rojo.');
       return;
     }
 
@@ -303,12 +357,16 @@ export default function GestionDetalleScreen() {
                     <TextInput
                       style={styles.input}
                       value={valor}
-                      onChangeText={(textoNuevo) =>
+                      onChangeText={(textoNuevo) => {
                         setValores((anterior) => ({
                           ...anterior,
                           [campo.nombre]: textoNuevo,
-                        }))
-                      }
+                        }));
+                        setErrores((anterior) => ({
+                          ...anterior,
+                          [campo.nombre]: '',
+                        }));
+                      }}
                       placeholder={campo.placeholder}
                       placeholderTextColor="#9CA3AF"
                       secureTextEntry={campo.tipo === 'password'}
@@ -322,6 +380,9 @@ export default function GestionDetalleScreen() {
                       maxLength={campo.maxLength}
                     />
                   )}
+                  {errores[campo.nombre] ? (
+                    <Text style={styles.error}>{errores[campo.nombre]}</Text>
+                  ) : null}
                 </View>
               );
             })}
@@ -379,6 +440,7 @@ const styles = StyleSheet.create({
   textoOpcion: { color: '#374151', fontSize: 13 },
   textoOpcionSeleccionado: { color: '#065F33', fontWeight: '700' },
   sinOpciones: { color: '#B91C1C', fontSize: 13 },
+  error: { color: '#DC2626', fontSize: 12, marginTop: 6 },
   boton: {
     backgroundColor: '#07883F',
     borderRadius: 10,

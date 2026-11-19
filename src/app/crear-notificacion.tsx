@@ -21,6 +21,8 @@ import { opcionesRemotas } from '@/services/recursos';
 
 type Opcion = { id: number; etiqueta: string };
 
+const TIPOS_NOTIFICACION = ['sistema', 'viaje', 'administracion'] as const;
+
 function mensajeError(error: unknown): string {
   const err = error as AxiosError<{ message?: string }>;
   if (err.response?.data?.message) return err.response.data.message;
@@ -37,7 +39,7 @@ export default function CrearNotificacionScreen() {
   const [viajes, setViajes] = useState<Opcion[]>([]);
   const [usuarioId, setUsuarioId] = useState<number | null>(null);
   const [viajeId, setViajeId] = useState<number | null>(null);
-  const [tipo, setTipo] = useState('');
+  const [tipo, setTipo] = useState<string>(TIPOS_NOTIFICACION[0]);
   const [titulo, setTitulo] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(true);
@@ -81,12 +83,20 @@ export default function CrearNotificacionScreen() {
   }
 
   const enviar = async () => {
+    if (guardando) return;
     if (usuarioId == null) {
       Alert.alert('Destinatario requerido', 'Selecciona un usuario real.');
       return;
     }
-    if (tipo.trim().length < 2 || titulo.trim().length < 2 || mensaje.trim().length < 2) {
-      Alert.alert('Datos incompletos', 'Completa tipo, título y mensaje.');
+    const tipoValido = (TIPOS_NOTIFICACION as readonly string[]).includes(tipo);
+    const tituloValido = titulo.trim().length >= 2 && titulo.trim().length <= 150;
+    const mensajeValido =
+      mensaje.trim().length >= 2 && mensaje.trim().length <= 1000;
+    if (!tipoValido || !tituloValido || !mensajeValido) {
+      Alert.alert(
+        'Datos inválidos',
+        'Selecciona un tipo válido y completa el título (2-150) y el mensaje (2-1000 caracteres).',
+      );
       return;
     }
     try {
@@ -173,14 +183,22 @@ export default function CrearNotificacionScreen() {
             </View>
 
             <Text style={styles.etiqueta}>Tipo *</Text>
-            <TextInput
-              style={styles.input}
-              value={tipo}
-              onChangeText={setTipo}
-              placeholder="sistema"
-              placeholderTextColor="#9CA3AF"
-              maxLength={50}
-            />
+            <View style={styles.opciones}>
+              {TIPOS_NOTIFICACION.map((opcion) => (
+                <Pressable
+                  key={opcion}
+                  style={[styles.opcion, tipo === opcion && styles.opcionSeleccionada]}
+                  onPress={() => setTipo(opcion)}>
+                  <Text
+                    style={[
+                      styles.textoOpcion,
+                      tipo === opcion && styles.textoOpcionSeleccionado,
+                    ]}>
+                    {opcion}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
             <Text style={styles.etiqueta}>Título *</Text>
             <TextInput
@@ -241,6 +259,7 @@ const styles = StyleSheet.create({
   },
   opcionSeleccionada: { borderColor: '#07883F', backgroundColor: '#E6F4EC' },
   textoOpcion: { color: '#374151', fontSize: 13 },
+  textoOpcionSeleccionado: { color: '#FFFFFF', fontWeight: '800' },
   input: {
     borderWidth: 1,
     borderColor: '#D1D5DB',
