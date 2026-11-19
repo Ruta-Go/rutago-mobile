@@ -1,29 +1,13 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { router } from 'expo-router';
 
-import { ROLES } from '@/constants/roles';
 import {
-  leerSesion,
-  limpiarSesion,
-  suscribirseASesion,
-} from '@/services/api';
+  iniciarSincronizacionSesion,
+  useAuthStore,
+  type UsuarioSesion,
+} from '@/store/authStore';
 
-export type UsuarioSesion = {
-  id?: number | string;
-  nombres?: string;
-  apellidos?: string;
-  correo?: string;
-  rolId?: number;
-  rol?: { id?: number; nombreRol?: string } | null;
-};
+export type { UsuarioSesion } from '@/store/authStore';
 
 type ContextoSesion = {
   token: string | null;
@@ -33,73 +17,33 @@ type ContextoSesion = {
   cerrarSesion: () => Promise<void>;
 };
 
-const SesionContext = createContext<ContextoSesion | null>(null);
-
+/**
+ * Mantuve este provider como fachada para no reescribir las pantallas existentes;
+ * el estado real ahora vive en el store global de autenticación.
+ */
 export function SesionProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
-  const [cargando, setCargando] = useState(true);
-
-  const refrescarSesion = useCallback(async () => {
-    try {
-      const sesion = await leerSesion();
-      const usuarioSesion = sesion.usuario as UsuarioSesion | null;
-      const rolId = Number(usuarioSesion?.rolId ?? usuarioSesion?.rol?.id);
-      const rolesHabilitados: number[] = [
-        ROLES.ADMINISTRADOR,
-        ROLES.CONDUCTOR,
-        ROLES.PASAJERO,
-      ];
-      const rolHabilitado = rolesHabilitados.includes(rolId);
-
-      if (sesion.token && !rolHabilitado) {
-        await limpiarSesion();
-        setToken(null);
-        setUsuario(null);
-        return;
-      }
-
-      setToken(sesion.token);
-      setUsuario(usuarioSesion);
-    } catch {
-      setToken(null);
-      setUsuario(null);
-    }
-  }, []);
-
   useEffect(() => {
-    let activo = true;
+    const desuscribir = iniciarSincronizacionSesion();
 
-    (async () => {
-      await refrescarSesion();
-      if (activo) setCargando(false);
+    void (async () => {
+      await useAuthStore.getState().hidratar();
+      if (useAuthStore.getState().token) {
+        await useAuthStore.getState().refrescarPerfil();
+      }
     })();
 
-    return () => {
-      activo = false;
-    };
-  }, [refrescarSesion]);
+    return desuscribir;
+  }, []);
 
-  useEffect(() => suscribirseASesion(refrescarSesion), [refrescarSesion]);
-
-  const cerrarSesion = useCallback(async () => {
-    await limpiarSesion();
-    await refrescarSesion();
-    router.replace('/');
-  }, [refrescarSesion]);
-
-  const valor = useMemo<ContextoSesion>(
-    () => ({ token, usuario, cargando, refrescarSesion, cerrarSesion }),
-    [token, usuario, cargando, refrescarSesion, cerrarSesion],
-  );
-
-  return <SesionContext.Provider value={valor}>{children}</SesionContext.Provider>;
+  return <>{children}</>;
 }
 
 export function useSesion(): ContextoSesion {
-  const contexto = useContext(SesionContext);
-  if (!contexto) {
-    throw new Error('useSesion debe usarse dentro de SesionProvider');
-  }
-  return contexto;
+  const token = useAuthStore((estado) => estado.token);
+  const usuario = useAuthStore((estado) => estado.usuario);
+  const cargando = useAuthStore((estado) => estado.cargando);
+  const refrescarSesion = useAuthStore((estado) => estado.refrescarSesion);
+  const cerrarSesion = useAuthStore((estado) => estado.cerrarSesion);
+
+  return { token, usuario, cargando, refrescarSesion, cerrarSesion };
 }
