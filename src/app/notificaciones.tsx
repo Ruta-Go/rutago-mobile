@@ -10,7 +10,9 @@ import {
   View,
 } from 'react-native';
 import { isAxiosError, type AxiosError } from 'axios';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
+
+import { volverSeguro } from '@/utils/navegacion';
 
 import { useRealtime } from '@/hooks/useRealtime';
 import { api, extraerLista } from '@/services/api';
@@ -42,6 +44,7 @@ export default function NotificacionesScreen() {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
+  const [marcandoId, setMarcandoId] = useState<number | null>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -70,11 +73,15 @@ export default function NotificacionesScreen() {
   });
 
   const marcarLeida = async (notificacion: Notificacion) => {
+    if (marcandoId !== null) return;
+    setMarcandoId(notificacion.id);
     try {
       await api.patch(`/notificaciones/${notificacion.id}/leida`);
       await cargar();
     } catch (error) {
       Alert.alert('Error', mensajeError(error));
+    } finally {
+      setMarcandoId(null);
     }
   };
 
@@ -97,7 +104,7 @@ export default function NotificacionesScreen() {
             colors={['#07883F']}
           />
         }>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 
@@ -147,8 +154,13 @@ export default function NotificacionesScreen() {
               {!notificacion.leida && (
                 <Pressable
                   style={styles.boton}
+                  disabled={marcandoId !== null}
                   onPress={() => void marcarLeida(notificacion)}>
-                  <Text style={styles.textoBoton}>Marcar como leída</Text>
+                  {marcandoId === notificacion.id ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.textoBoton}>Marcar como leída</Text>
+                  )}
                 </Pressable>
               )}
             </View>

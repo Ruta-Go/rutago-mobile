@@ -9,6 +9,7 @@ import {
 import type { ReactNode } from 'react';
 import { router } from 'expo-router';
 
+import { ROLES } from '@/constants/roles';
 import {
   leerSesion,
   limpiarSesion,
@@ -42,8 +43,24 @@ export function SesionProvider({ children }: { children: ReactNode }) {
   const refrescarSesion = useCallback(async () => {
     try {
       const sesion = await leerSesion();
+      const usuarioSesion = sesion.usuario as UsuarioSesion | null;
+      const rolId = Number(usuarioSesion?.rolId ?? usuarioSesion?.rol?.id);
+      const rolesHabilitados: number[] = [
+        ROLES.ADMINISTRADOR,
+        ROLES.CONDUCTOR,
+        ROLES.PASAJERO,
+      ];
+      const rolHabilitado = rolesHabilitados.includes(rolId);
+
+      if (sesion.token && !rolHabilitado) {
+        await limpiarSesion();
+        setToken(null);
+        setUsuario(null);
+        return;
+      }
+
       setToken(sesion.token);
-      setUsuario(sesion.usuario as UsuarioSesion | null);
+      setUsuario(usuarioSesion);
     } catch {
       setToken(null);
       setUsuario(null);

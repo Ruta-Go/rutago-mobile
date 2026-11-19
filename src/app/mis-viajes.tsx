@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -13,6 +12,9 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { Stack, router } from 'expo-router';
 
+import { volverSeguro } from '@/utils/navegacion';
+
+import { MapaIntegrado, type PuntoMapa } from '@/components/mapa/MapaIntegrado';
 import { ROLES } from '@/constants/roles';
 import { useRealtime, type EventoTiempoReal } from '@/hooks/useRealtime';
 import { useSesion } from '@/hooks/useSesion';
@@ -55,6 +57,7 @@ export default function MisViajesScreen() {
   );
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
+  const [accionEnCurso, setAccionEnCurso] = useState<string | null>(null);
 
   const cargarUbicaciones = useCallback(async (lista: Viaje[]) => {
     const activos = lista.filter((viaje) => {
@@ -144,16 +147,6 @@ export default function MisViajesScreen() {
 
   useRealtime(manejarUbicacion, salasViaje);
 
-  const abrirMapa = async (latitud: number, longitud: number) => {
-    const url = `https://www.openstreetmap.org/?mlat=${latitud}&mlon=${longitud}#map=17/${latitud}/${longitud}`;
-    try {
-      await Linking.openURL(url);
-    } catch (error) {
-      console.warn('[mapa] no se pudo abrir', error);
-      Alert.alert('Error', 'No se pudo abrir el mapa.');
-    }
-  };
-
   const ejecutarAccion = (
     viaje: Viaje,
     endpoint: 'cancelar' | 'iniciar' | 'finalizar',
@@ -165,6 +158,9 @@ export default function MisViajesScreen() {
       {
         text: 'Confirmar',
         onPress: async () => {
+          if (accionEnCurso) return;
+          const clave = `${viaje.id}-${endpoint}`;
+          setAccionEnCurso(clave);
           try {
             const respuesta = await api.patch<unknown>(
               `/viajes/${viaje.id}/${endpoint}`,
@@ -174,6 +170,8 @@ export default function MisViajesScreen() {
             await cargar();
           } catch (error) {
             Alert.alert('Error', mensajeError(error));
+          } finally {
+            setAccionEnCurso(null);
           }
         },
       },
@@ -199,7 +197,7 @@ export default function MisViajesScreen() {
             colors={['#07883F']}
           />
         }>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 
@@ -234,6 +232,19 @@ export default function MisViajesScreen() {
             const longitud = ubicacion?.longitud ?? viaje.vehiculo?.longitud;
             const viajeActivo =
               id === ESTADO_VIAJE.ACEPTADO || id === ESTADO_VIAJE.EN_CURSO;
+            const puntosMapa: PuntoMapa[] =
+              latitud != null && longitud != null
+                ? [
+                    {
+                      latitud: Number(latitud),
+                      longitud: Number(longitud),
+                      etiqueta: viaje.vehiculo?.placa
+                        ? `Vehículo ${viaje.vehiculo.placa}`
+                        : 'Vehículo del viaje',
+                      tipo: 'vehiculo',
+                    },
+                  ]
+                : [];
             return (
               <View key={viaje.id} style={styles.tarjeta}>
                 <View style={styles.cabecera}>
@@ -283,18 +294,15 @@ export default function MisViajesScreen() {
                               viaje.vehiculo?.ultimaActualizacion,
                           )}
                         </Text>
-                        <Pressable
-                          style={styles.botonMapa}
-                          onPress={() =>
-                            void abrirMapa(Number(latitud), Number(longitud))
-                          }>
-                          <Text style={styles.textoBotonMapa}>Abrir mapa</Text>
-                        </Pressable>
+                        <MapaIntegrado puntos={puntosMapa} altura={220} />
                       </>
                     ) : (
-                      <Text style={styles.ubicacionDato}>
-                        El conductor todavía no ha reportado coordenadas.
-                      </Text>
+                      <>
+                        <Text style={styles.ubicacionDato}>
+                          El conductor todavía no ha reportado coordenadas.
+                        </Text>
+                        <MapaIntegrado altura={180} />
+                      </>
                     )}
                   </View>
                 ) : null}
@@ -319,6 +327,7 @@ export default function MisViajesScreen() {
                   {rolId === ROLES.CONDUCTOR && id === ESTADO_VIAJE.ACEPTADO && (
                     <Pressable
                       style={styles.botonAccion}
+                      disabled={accionEnCurso !== null}
                       onPress={() =>
                         ejecutarAccion(
                           viaje,
@@ -327,13 +336,18 @@ export default function MisViajesScreen() {
                           '¿Confirmas que el viaje está iniciando?',
                         )
                       }>
-                      <Text style={styles.textoBoton}>Iniciar</Text>
+                      {accionEnCurso === `${viaje.id}-iniciar` ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <Text style={styles.textoBoton}>Iniciar</Text>
+                      )}
                     </Pressable>
                   )}
 
                   {rolId === ROLES.CONDUCTOR && id === ESTADO_VIAJE.EN_CURSO && (
                     <Pressable
                       style={styles.botonAccion}
+                      disabled={accionEnCurso !== null}
                       onPress={() =>
                         ejecutarAccion(
                           viaje,
@@ -342,7 +356,11 @@ export default function MisViajesScreen() {
                           '¿Confirmas que el viaje terminó?',
                         )
                       }>
-                      <Text style={styles.textoBoton}>Finalizar</Text>
+                      {accionEnCurso === `${viaje.id}-finalizar` ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <Text style={styles.textoBoton}>Finalizar</Text>
+                      )}
                     </Pressable>
                   )}
 
@@ -352,6 +370,7 @@ export default function MisViajesScreen() {
                     id <= ESTADO_VIAJE.EN_CURSO && (
                       <Pressable
                         style={styles.botonSecundario}
+                        disabled={accionEnCurso !== null}
                         onPress={() =>
                           ejecutarAccion(
                             viaje,
@@ -360,7 +379,11 @@ export default function MisViajesScreen() {
                             '¿Seguro que quieres cancelar este viaje?',
                           )
                         }>
-                        <Text style={styles.textoBotonSecundario}>Cancelar</Text>
+                        {accionEnCurso === `${viaje.id}-cancelar` ? (
+                          <ActivityIndicator size="small" color="#07883F" />
+                        ) : (
+                          <Text style={styles.textoBotonSecundario}>Cancelar</Text>
+                        )}
                       </Pressable>
                     )}
                 </View>

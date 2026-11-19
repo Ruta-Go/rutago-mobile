@@ -12,6 +12,8 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { router, Stack } from 'expo-router';
 
+import { volverSeguro } from '@/utils/navegacion';
+
 import { ROLES } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import { api, extraerDatos } from '@/services/api';
@@ -70,7 +72,7 @@ export default function CrearNotificacionScreen() {
           <Text style={styles.descripcion}>
             Sólo un administrador puede enviar notificaciones internas.
           </Text>
-          <Pressable style={styles.boton} onPress={() => router.back()}>
+          <Pressable style={styles.boton} onPress={() => volverSeguro()}>
             <Text style={styles.textoBoton}>Volver</Text>
           </Pressable>
         </View>
@@ -117,7 +119,7 @@ export default function CrearNotificacionScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contenido}>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 

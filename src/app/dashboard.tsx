@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -8,12 +9,15 @@ import {
 import { Stack, router } from 'expo-router';
 
 import { ROLES, esRolValido, nombreRol } from '@/constants/roles';
+import { useRealtime } from '@/hooks/useRealtime';
 import { useSesion } from '@/hooks/useSesion';
+import { api, extraerLista } from '@/services/api';
 
 type Opcion = {
   titulo: string;
   descripcion: string;
   icono: string;
+  badge?: number;
   ruta?:
     | '/buscar-viajes'
     | '/aceptar-viaje'
@@ -136,11 +140,42 @@ export default function DashboardScreen() {
   const { usuario, cerrarSesion } = useSesion();
   const rolId = Number(usuario?.rolId ?? usuario?.rol?.id);
   const rolValido = esRolValido(rolId);
+  const [noLeidas, setNoLeidas] = useState(0);
+
+  const cargarNoLeidas = useCallback(async () => {
+    if (!rolValido) return;
+    try {
+      const respuesta = await api.get<unknown>('/notificaciones');
+      const lista = extraerLista<{ leida?: boolean }>(respuesta.data);
+      setNoLeidas(lista.filter((item) => !item.leida).length);
+    } catch {
+      // Sin conexión no se muestra un número inventado.
+    }
+  }, [rolValido]);
+
+  useEffect(() => {
+    void Promise.resolve().then(cargarNoLeidas);
+  }, [cargarNoLeidas]);
+
+  useRealtime((evento) => {
+    if (
+      evento.tipo === 'notificacion' ||
+      evento.tipo === 'notificacion_leida'
+    ) {
+      void cargarNoLeidas();
+    }
+  });
 
   let opciones: Opcion[] = [];
   if (rolId === ROLES.PASAJERO) opciones = OPCIONES_PASAJERO;
   else if (rolId === ROLES.CONDUCTOR) opciones = OPCIONES_CONDUCTOR;
   else if (rolId === ROLES.ADMINISTRADOR) opciones = OPCIONES_GESTION;
+
+  const opcionesVisibles = opciones.map((opcion) =>
+    opcion.ruta === '/notificaciones' && noLeidas > 0
+      ? { ...opcion, badge: noLeidas }
+      : opcion,
+  );
 
   const manejarOpcion = (opcion: Opcion) => {
     if (opcion.ruta) {
@@ -178,7 +213,7 @@ export default function DashboardScreen() {
 
         <Text style={styles.tituloSeccion}>Mi espacio</Text>
 
-        {opciones.map((opcion) => (
+        {opcionesVisibles.map((opcion) => (
           <Pressable
             key={opcion.titulo}
             style={({ pressed }) => [
@@ -188,6 +223,13 @@ export default function DashboardScreen() {
             onPress={() => manejarOpcion(opcion)}>
             <View style={styles.icono}>
               <Text style={styles.iconoTexto}>{opcion.icono}</Text>
+              {opcion.badge ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeTexto}>
+                    {opcion.badge > 9 ? '9+' : opcion.badge}
+                  </Text>
+                </View>
+              ) : null}
             </View>
 
             <View style={styles.textosOpcion}>
@@ -296,6 +338,23 @@ const styles = StyleSheet.create({
   },
   iconoTexto: {
     fontSize: 23,
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#F5C400',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeTexto: {
+    color: '#1F2937',
+    fontSize: 11,
+    fontWeight: '900',
   },
   textosOpcion: {
     flex: 1,

@@ -9,8 +9,12 @@ import {
   Pressable,
   View,
 } from 'react-native';
+import * as Location from 'expo-location';
 import { isAxiosError, type AxiosError } from 'axios';
 import { router, Stack } from 'expo-router';
+
+import { MapaIntegrado, type PuntoMapa } from '@/components/mapa/MapaIntegrado';
+import { volverSeguro } from '@/utils/navegacion';
 
 import { api, extraerLista } from '../services/api';
 
@@ -25,6 +29,7 @@ type Ruta = {
   tiempoEstimadoMinutos?: number;
   costo?: number | null;
   horarios?: string[] | null;
+  distanciaMetros?: number;
 };
 
 export default function BuscarViajesScreen() {
@@ -33,6 +38,11 @@ export default function BuscarViajesScreen() {
   const [resultados, setResultados] = useState<Ruta[]>([]);
   const [cargando, setCargando] = useState(false);
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
+  const [ubicacion, setUbicacion] = useState<{
+    latitud: number;
+    longitud: number;
+  } | null>(null);
+  const [motorGeo, setMotorGeo] = useState<string | null>(null);
 
   const normalizarTexto = (texto: string) =>
     texto
@@ -88,6 +98,60 @@ export default function BuscarViajesScreen() {
     }
   };
 
+  const buscarCercanas = async () => {
+    if (cargando) return;
+
+    try {
+      setCargando(true);
+      const permiso = await Location.requestForegroundPermissionsAsync();
+      if (permiso.status !== 'granted') {
+        Alert.alert(
+          'Permiso de ubicación',
+          'Debes permitir el uso de la ubicación para buscar rutas cercanas reales.',
+        );
+        return;
+      }
+
+      const posicion = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const latitud = posicion.coords.latitude;
+      const longitud = posicion.coords.longitude;
+
+      const respuesta = await api.post<unknown>('/rutas/cercanas', {
+        latitud,
+        longitud,
+        radioMetros: 15000,
+        limite: 20,
+      });
+      const cuerpo = respuesta.data as { motor?: string };
+      setMotorGeo(cuerpo?.motor ?? null);
+      setUbicacion({ latitud, longitud });
+      setResultados(extraerLista<Ruta>(respuesta.data));
+      setBusquedaRealizada(true);
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      Alert.alert(
+        'No se pudo buscar',
+        err.response?.data?.message ??
+          `Error ${err.response?.status ?? 'de conexión'}: ${err.message}`,
+      );
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const puntosMapa: PuntoMapa[] = ubicacion
+    ? [
+        {
+          latitud: ubicacion.latitud,
+          longitud: ubicacion.longitud,
+          etiqueta: 'Tu ubicación actual',
+          tipo: 'pasajero',
+        },
+      ]
+    : [];
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -96,7 +160,7 @@ export default function BuscarViajesScreen() {
         style={styles.container}
         contentContainerStyle={styles.contenido}
         keyboardShouldPersistTaps="handled">
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 
@@ -141,7 +205,36 @@ export default function BuscarViajesScreen() {
               <Text style={styles.textoBoton}>Buscar viajes</Text>
             )}
           </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.botonSecundario,
+              pressed && styles.botonPresionado,
+              cargando && styles.botonDeshabilitado,
+            ]}
+            onPress={() => void buscarCercanas()}
+            disabled={cargando}>
+            <Text style={styles.textoBotonSecundario}>
+              Buscar rutas cerca de mí
+            </Text>
+          </Pressable>
         </View>
+
+        {ubicacion ? (
+          <View style={styles.tarjetaResultado}>
+            <Text style={styles.nombreRuta}>Tu ubicación real</Text>
+            <Text style={styles.dato}>
+              Latitud: {ubicacion.latitud.toFixed(5)} · Longitud:{' '}
+              {ubicacion.longitud.toFixed(5)}
+            </Text>
+            {motorGeo ? (
+              <Text style={styles.dato}>
+                Cálculo del backend: {motorGeo === 'postgis' ? 'PostGIS' : 'JavaScript'}
+              </Text>
+            ) : null}
+            <MapaIntegrado puntos={puntosMapa} altura={200} />
+          </View>
+        ) : null}
 
         <Text style={styles.resultados}>Viajes disponibles</Text>
 
@@ -159,8 +252,9 @@ export default function BuscarViajesScreen() {
             <Text style={styles.icono}>🚗</Text>
             <Text style={styles.vacioTitulo}>No encontramos rutas</Text>
             <Text style={styles.vacioTexto}>
-              No hay recorridos registrados desde {origen} hasta {destino}.
-              Intenta con otras ciudades.
+              {ubicacion
+                ? 'No hay rutas registradas dentro de 15 km de tu ubicación real.'
+                : `No hay recorridos registrados desde ${origen} hasta ${destino}. Intenta con otras ciudades.`}
             </Text>
           </View>
         )}
@@ -184,6 +278,11 @@ export default function BuscarViajesScreen() {
               )}
               {ruta.distanciaKm != null && (
                 <Text style={styles.dato}>Distancia: {ruta.distanciaKm} km</Text>
+              )}
+              {ruta.distanciaMetros != null && (
+                <Text style={styles.dato}>
+                  Cerca de ti: {ruta.distanciaMetros} m
+                </Text>
               )}
               {ruta.tiempoEstimadoMinutos != null && (
                 <Text style={styles.dato}>
@@ -305,6 +404,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  botonSecundario: {
+    height: 46,
+    borderWidth: 1,
+    borderColor: '#F5C400',
+    backgroundColor: '#FFF8D9',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  textoBotonSecundario: {
+    color: '#1F2937',
+    fontSize: 14,
+    fontWeight: '800',
   },
   resultados: {
     color: '#202936',

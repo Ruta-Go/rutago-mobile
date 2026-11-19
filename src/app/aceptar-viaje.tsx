@@ -12,6 +12,8 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
+import { volverSeguro } from '@/utils/navegacion';
+
 import { NOMBRES_ESTADO_VEHICULO } from '@/constants/estados';
 import { api } from '@/services/api';
 import { listarVehiculos } from '@/services/catalogos';
@@ -109,7 +111,7 @@ export default function AceptarViajeScreen() {
             colors={['#07883F']}
           />
         }>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 

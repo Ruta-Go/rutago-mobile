@@ -11,6 +11,8 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { router, Stack } from 'expo-router';
 
+import { volverSeguro } from '@/utils/navegacion';
+
 import { RECURSOS } from '@/constants/gestion';
 import { ROLES, esRolValido, nombreRol } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
@@ -101,7 +103,7 @@ export default function PanelGestionScreen() {
           <Text style={styles.descripcion}>
             Este panel sólo está disponible para el rol Administrador.
           </Text>
-          <Pressable style={styles.boton} onPress={() => router.back()}>
+          <Pressable style={styles.boton} onPress={() => volverSeguro()}>
             <Text style={styles.textoBoton}>Volver</Text>
           </Pressable>
         </View>
@@ -126,7 +128,7 @@ export default function PanelGestionScreen() {
             colors={['#07883F']}
           />
         }>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,7 +10,10 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import { isAxiosError, type AxiosError } from 'axios';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
+
+import { MapaIntegrado, type PuntoMapa } from '@/components/mapa/MapaIntegrado';
+import { volverSeguro } from '@/utils/navegacion';
 
 import {
   ESTADOS_VEHICULO,
@@ -19,7 +21,7 @@ import {
 } from '@/constants/estados';
 import { ROLES } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
-import { api, extraerLista } from '@/services/api';
+import { api, extraerDatos, extraerLista } from '@/services/api';
 import type { Viaje } from '@/types/rutago';
 import { idEstado, nombreEstado, tituloRuta } from '@/utils/viajes';
 
@@ -28,6 +30,14 @@ type UltimoReporte = {
   longitud: number;
   velocidadKmh: number | null;
   fecha: string;
+};
+
+type UbicacionBackend = {
+  latitud?: number | string | null;
+  longitud?: number | string | null;
+  velocidadActual?: number | string | null;
+  ultimaActualizacion?: string;
+  fecha?: string;
 };
 
 type SuscripcionGPS = Awaited<ReturnType<typeof Location.watchPositionAsync>>;
@@ -91,6 +101,46 @@ export default function ReportarUbicacionScreen() {
   );
 
   const viaje = viajes.find((item) => item.id === viajeId) ?? null;
+  const vehiculoId = viaje?.vehiculo?.id;
+
+  useEffect(() => {
+    if (!vehiculoId) return;
+    let activo = true;
+
+    (async () => {
+      try {
+        const respuesta = await api.get<unknown>(
+          `/vehiculos/${vehiculoId}/ubicacion`,
+        );
+        const dato = extraerDatos<UbicacionBackend>(respuesta.data);
+        if (
+          !activo ||
+          dato.latitud == null ||
+          dato.longitud == null ||
+          !Number.isFinite(Number(dato.latitud)) ||
+          !Number.isFinite(Number(dato.longitud))
+        ) {
+          return;
+        }
+        setUltimoReporte({
+          latitud: Number(dato.latitud),
+          longitud: Number(dato.longitud),
+          velocidadKmh:
+            dato.velocidadActual == null ? null : Number(dato.velocidadActual),
+          fecha:
+            dato.ultimaActualizacion ??
+            dato.fecha ??
+            new Date().toLocaleString('es-CO'),
+        });
+      } catch {
+        // Sin reporte previo no hay coordenadas reales que mostrar.
+      }
+    })();
+
+    return () => {
+      activo = false;
+    };
+  }, [vehiculoId]);
 
   const reportar = useCallback(
     async (latitud: number, longitud: number, velocidad: number | null) => {
@@ -202,23 +252,23 @@ export default function ReportarUbicacionScreen() {
     }
   };
 
-  const abrirMapa = async () => {
-    if (!ultimoReporte) return;
-    const { latitud, longitud } = ultimoReporte;
-    const url = `https://www.openstreetmap.org/?mlat=${latitud}&mlon=${longitud}#map=17/${latitud}/${longitud}`;
-    try {
-      await Linking.openURL(url);
-    } catch {
-      Alert.alert('Error', 'No se pudo abrir el mapa.');
-    }
-  };
+  const puntosMapa: PuntoMapa[] = ultimoReporte
+    ? [
+        {
+          latitud: ultimoReporte.latitud,
+          longitud: ultimoReporte.longitud,
+          etiqueta: `Vehículo ${viaje?.vehiculo?.placa ?? ''}`.trim(),
+          tipo: 'vehiculo',
+        },
+      ]
+    : [];
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contenido}>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 
@@ -228,7 +278,15 @@ export default function ReportarUbicacionScreen() {
           Envía tu coordenada real del GPS al backend y a los pasajeros del viaje.
         </Text>
 
-        {cargando ? (
+        {rolId !== ROLES.CONDUCTOR ? (
+          <View style={styles.vacio}>
+            <Text style={styles.icono}>🔒</Text>
+            <Text style={styles.vacioTitulo}>Acceso de conductor</Text>
+            <Text style={styles.vacioTexto}>
+              El reporte de GPS está disponible únicamente para conductores con un viaje activo.
+            </Text>
+          </View>
+        ) : cargando ? (
           <View style={styles.estado}>
             <ActivityIndicator size="large" color="#07883F" />
             <Text style={styles.estadoTexto}>Consultando viajes activos...</Text>
@@ -268,7 +326,11 @@ export default function ReportarUbicacionScreen() {
                     style={[styles.boton, enviando && styles.botonDeshabilitado]}
                     onPress={() => void reportarUnaVez()}
                     disabled={enviando || monitoreando}>
-                    <Text style={styles.textoBoton}>Enviar mi ubicación actual</Text>
+                    {enviando ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.textoBoton}>Enviar mi ubicación actual</Text>
+                    )}
                   </Pressable>
                   <Pressable
                     style={[styles.botonSecundario, enviando && styles.botonDeshabilitado]}
@@ -293,9 +355,7 @@ export default function ReportarUbicacionScreen() {
                       Velocidad: {ultimoReporte.velocidadKmh ?? '—'} km/h
                     </Text>
                     <Text style={styles.dato}>Hora: {ultimoReporte.fecha}</Text>
-                    <Pressable style={styles.botonMapa} onPress={() => void abrirMapa()}>
-                      <Text style={styles.textoBotonMapa}>Ver en OpenStreetMap</Text>
-                    </Pressable>
+                    <MapaIntegrado puntos={puntosMapa} altura={220} />
                   </View>
                 )}
               </>

@@ -12,6 +12,8 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { router, Stack } from 'expo-router';
 
+import { volverSeguro } from '@/utils/navegacion';
+
 import { api, extraerLista } from '@/services/api';
 import type { Viaje } from '@/types/rutago';
 import {
@@ -93,7 +95,7 @@ export default function ViajesDisponiblesScreen() {
             colors={['#07883F']}
           />
         }>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 

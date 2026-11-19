@@ -12,6 +12,8 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { Stack, router } from 'expo-router';
 
+import { volverSeguro } from '@/utils/navegacion';
+
 import { ROLES } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import { api, extraerLista } from '@/services/api';
@@ -42,6 +44,7 @@ export default function MisSolicitudesScreen() {
   const [solicitudes, setSolicitudes] = useState<Viaje[]>([]);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
+  const [accionEnCurso, setAccionEnCurso] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     try {
@@ -88,6 +91,8 @@ export default function MisSolicitudesScreen() {
           text: 'Bajarme',
           style: 'destructive',
           onPress: async () => {
+            if (accionEnCurso) return;
+            setAccionEnCurso(`${viaje.id}-bajarse`);
             try {
               const respuesta = await api.delete<{ message?: string }>(
                 `/viajes/${viaje.id}/bajarse`,
@@ -96,6 +101,8 @@ export default function MisSolicitudesScreen() {
               await cargar();
             } catch (error) {
               Alert.alert('Error', mensajeError(error));
+            } finally {
+              setAccionEnCurso(null);
             }
           },
         },
@@ -113,6 +120,8 @@ export default function MisSolicitudesScreen() {
           text: 'Cancelar viaje',
           style: 'destructive',
           onPress: async () => {
+            if (accionEnCurso) return;
+            setAccionEnCurso(`${viaje.id}-cancelar`);
             try {
               const respuesta = await api.patch<{ message?: string }>(
                 `/viajes/${viaje.id}/cancelar`,
@@ -121,6 +130,8 @@ export default function MisSolicitudesScreen() {
               await cargar();
             } catch (error) {
               Alert.alert('Error', mensajeError(error));
+            } finally {
+              setAccionEnCurso(null);
             }
           },
         },
@@ -150,7 +161,7 @@ export default function MisSolicitudesScreen() {
             colors={['#07883F']}
           />
         }>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 
@@ -212,17 +223,27 @@ export default function MisSolicitudesScreen() {
                   <>
                     <Pressable
                       style={styles.botonSecundario}
+                      disabled={accionEnCurso !== null}
                       onPress={() => bajarse(viaje)}>
-                      <Text style={styles.textoBotonSecundario}>
-                        Bajarme del viaje
-                      </Text>
+                      {accionEnCurso === `${viaje.id}-bajarse` ? (
+                        <ActivityIndicator size="small" color="#07883F" />
+                      ) : (
+                        <Text style={styles.textoBotonSecundario}>
+                          Bajarme del viaje
+                        </Text>
+                      )}
                     </Pressable>
                     <Pressable
                       style={styles.botonSecundario}
+                      disabled={accionEnCurso !== null}
                       onPress={() => cancelar(viaje)}>
-                      <Text style={styles.textoBotonSecundario}>
-                        Cancelar solicitud
-                      </Text>
+                      {accionEnCurso === `${viaje.id}-cancelar` ? (
+                        <ActivityIndicator size="small" color="#07883F" />
+                      ) : (
+                        <Text style={styles.textoBotonSecundario}>
+                          Cancelar solicitud
+                        </Text>
+                      )}
                     </Pressable>
                   </>
                 )}

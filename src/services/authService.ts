@@ -1,4 +1,6 @@
 import { isAxiosError } from 'axios';
+
+import { ROLES } from '@/constants/roles';
 import { api, guardarSesion, type RespuestaApi } from './api';
 
 type MensajeRespuesta = RespuestaApi<never> & {
@@ -82,6 +84,16 @@ export async function iniciarSesion(
 
     if (!data.success || !data.token || !data.refreshToken || !data.usuario) {
       throw new Error(data.message || 'No fue posible iniciar sesión');
+    }
+
+    const rolId = Number(data.usuario.rol?.id);
+    const rolesHabilitados: number[] = [
+      ROLES.ADMINISTRADOR,
+      ROLES.CONDUCTOR,
+      ROLES.PASAJERO,
+    ];
+    if (!rolesHabilitados.includes(rolId)) {
+      throw new Error('Este rol no está habilitado en la aplicación móvil.');
     }
 
     await guardarSesion(data.token, data.refreshToken, data.usuario);

@@ -12,8 +12,10 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
+import { volverSeguro } from '@/utils/navegacion';
+
 import { RECURSOS, recursoPermitido, type CampoForm } from '@/constants/gestion';
-import { ROLES, esRolValido } from '@/constants/roles';
+import { ROLES } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import { api } from '@/services/api';
 import {
@@ -142,13 +144,13 @@ export default function GestionDetalleScreen() {
     void Promise.resolve().then(cargar);
   }, [cargar]);
 
-  if (!config || !esRolValido(rolId)) {
+  if (!config || rolId !== ROLES.ADMINISTRADOR) {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={[styles.container, styles.centro]}>
           <Text style={styles.titulo}>Formulario no disponible</Text>
-          <Pressable style={styles.boton} onPress={() => router.back()}>
+          <Pressable style={styles.boton} onPress={() => volverSeguro()}>
             <Text style={styles.textoBoton}>Volver</Text>
           </Pressable>
         </View>
@@ -166,7 +168,7 @@ export default function GestionDetalleScreen() {
           <Text style={styles.descripcion}>
             Tu rol no puede modificar este recurso.
           </Text>
-          <Pressable style={styles.boton} onPress={() => router.back()}>
+          <Pressable style={styles.boton} onPress={() => volverSeguro()}>
             <Text style={styles.textoBoton}>Volver</Text>
           </Pressable>
         </View>
@@ -238,7 +240,7 @@ export default function GestionDetalleScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contenido}>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 

@@ -10,7 +10,9 @@ import {
   View,
 } from 'react-native';
 import { isAxiosError, type AxiosError } from 'axios';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
+
+import { volverSeguro } from '@/utils/navegacion';
 
 import {
   OPCIONES_ESTADO_CONDUCTOR,
@@ -237,7 +239,7 @@ export default function MiPerfilScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView style={styles.container} contentContainerStyle={styles.contenido}>
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 

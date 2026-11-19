@@ -12,6 +12,8 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
+import { volverSeguro } from '@/utils/navegacion';
+
 import { etiquetaRuta, listarHorariosPorRuta, listarRutas } from '@/services/catalogos';
 import { api } from '@/services/api';
 import type { Horario, Ruta } from '@/types/rutago';
@@ -131,7 +133,7 @@ export default function CrearViajeScreen() {
         style={styles.container}
         contentContainerStyle={styles.contenido}
         keyboardShouldPersistTaps="handled">
-        <Pressable style={styles.volver} onPress={() => router.back()}>
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
           <Text style={styles.volverTexto}>← Volver</Text>
         </Pressable>
 
