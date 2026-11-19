@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,36 +9,27 @@ import {
   Pressable,
   View,
 } from 'react-native';
-import { Stack } from 'expo-router';
-import { api } from '../services/api';
+import * as Location from 'expo-location';
+import { isAxiosError, type AxiosError } from 'axios';
+import { router, Stack } from 'expo-router';
 
-type Horario = {
-  id: number;
-  horaSalida?: string;
-  frecuenciaMinutos?: number;
-  vehiculo?: {
-    placa?: string;
-    capacidadPasajeros?: number;
-    estado?: string;
-    perfilEntidad?: {
-      razonSocial?: string;
-    };
-  };
-};
+import { MapaIntegrado, type PuntoMapa } from '@/components/mapa/MapaIntegrado';
+import { volverSeguro } from '@/utils/navegacion';
 
+import { api, extraerLista } from '../services/api';
+
+/** Contrato real de /rutas/destino: horarios es un arreglo de horas (string). */
 type Ruta = {
   id: number;
   nombre?: string;
-  origen?: {
-    nombre?: string;
-  };
-  destino?: {
-    nombre?: string;
-  };
+  origen?: { nombre?: string };
+  destino?: { nombre?: string };
   descripcion?: string;
   distanciaKm?: number;
   tiempoEstimadoMinutos?: number;
-  horarios?: Horario[];
+  costo?: number | null;
+  horarios?: string[] | null;
+  distanciaMetros?: number;
 };
 
 export default function BuscarViajesScreen() {
@@ -48,6 +38,11 @@ export default function BuscarViajesScreen() {
   const [resultados, setResultados] = useState<Ruta[]>([]);
   const [cargando, setCargando] = useState(false);
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
+  const [ubicacion, setUbicacion] = useState<{
+    latitud: number;
+    longitud: number;
+  } | null>(null);
+  const [motorGeo, setMotorGeo] = useState<string | null>(null);
 
   const normalizarTexto = (texto: string) =>
     texto
@@ -67,56 +62,95 @@ export default function BuscarViajesScreen() {
       setBusquedaRealizada(false);
       setResultados([]);
 
-      const respuesta = await api.get<Ruta[]>(
-        `/rutas/destino/${encodeURIComponent(destino.trim())}`
+      const respuesta = await api.get<unknown>(
+        `/rutas/destino/${encodeURIComponent(destino.trim())}`,
       );
-
-      const rutas = Array.isArray(respuesta.data)
-        ? respuesta.data
-        : [];
-
+      const rutas = extraerLista<Ruta>(respuesta.data);
       const origenBuscado = normalizarTexto(origen);
 
-      const rutasFiltradas = rutas.filter((ruta) => {
-        const origenRuta = normalizarTexto(
-          ruta.origen?.nombre ?? ''
-        );
-
-        return origenRuta.includes(origenBuscado);
-      });
+      const rutasFiltradas = rutas.filter((ruta) =>
+        normalizarTexto(ruta.origen?.nombre ?? '').includes(origenBuscado),
+      );
 
       setResultados(rutasFiltradas);
       setBusquedaRealizada(true);
-    } catch (error: any) {
-  console.error(
-    'Error al buscar viajes:',
-    error.response?.status,
-    error.response?.data
-  );
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) {
+        setResultados([]);
+        setBusquedaRealizada(true);
+        return;
+      }
 
-  Alert.alert(
-    'Error de búsqueda',
-    error.response?.data?.message ??
-      `Error ${error.response?.status ?? 'de conexión'}: ${
-        error.message
-      }`
-  );
-} finally {
+      const err = error as AxiosError<{ message?: string }>;
+      console.error(
+        'Error al buscar viajes:',
+        err.response?.status,
+        err.response?.data,
+      );
+
+      Alert.alert(
+        'Error de búsqueda',
+        err.response?.data?.message ??
+          `Error ${err.response?.status ?? 'de conexión'}: ${err.message}`,
+      );
+    } finally {
       setCargando(false);
     }
   };
 
-  const obtenerEstadoTexto = (estado?: string) => {
-    if (estado === 'EN_RUTA') return 'En ruta';
-    if (estado === 'PROXIMO') return 'Próximo';
-    return 'En terminal';
+  const buscarCercanas = async () => {
+    if (cargando) return;
+
+    try {
+      setCargando(true);
+      const permiso = await Location.requestForegroundPermissionsAsync();
+      if (permiso.status !== 'granted') {
+        Alert.alert(
+          'Permiso de ubicación',
+          'Debes permitir el uso de la ubicación para buscar rutas cercanas reales.',
+        );
+        return;
+      }
+
+      const posicion = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const latitud = posicion.coords.latitude;
+      const longitud = posicion.coords.longitude;
+
+      const respuesta = await api.post<unknown>('/rutas/cercanas', {
+        latitud,
+        longitud,
+        radioMetros: 15000,
+        limite: 20,
+      });
+      const cuerpo = respuesta.data as { motor?: string };
+      setMotorGeo(cuerpo?.motor ?? null);
+      setUbicacion({ latitud, longitud });
+      setResultados(extraerLista<Ruta>(respuesta.data));
+      setBusquedaRealizada(true);
+    } catch (error) {
+      const err = error as AxiosError<{ message?: string }>;
+      Alert.alert(
+        'No se pudo buscar',
+        err.response?.data?.message ??
+          `Error ${err.response?.status ?? 'de conexión'}: ${err.message}`,
+      );
+    } finally {
+      setCargando(false);
+    }
   };
 
-  const obtenerEstadoColor = (estado?: string) => {
-    if (estado === 'EN_RUTA') return '#0D6EFD';
-    if (estado === 'PROXIMO') return '#D9AD00';
-    return '#07883F';
-  };
+  const puntosMapa: PuntoMapa[] = ubicacion
+    ? [
+        {
+          latitud: ubicacion.latitud,
+          longitud: ubicacion.longitud,
+          etiqueta: 'Tu ubicación actual',
+          tipo: 'pasajero',
+        },
+      ]
+    : [];
 
   return (
     <>
@@ -125,19 +159,19 @@ export default function BuscarViajesScreen() {
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contenido}
-        keyboardShouldPersistTaps="handled"
-      >
+        keyboardShouldPersistTaps="handled">
+        <Pressable style={styles.volver} onPress={() => volverSeguro()}>
+          <Text style={styles.volverTexto}>← Volver</Text>
+        </Pressable>
+
         <Text style={styles.marca}>RUTA GO</Text>
-
         <Text style={styles.titulo}>Buscar viajes</Text>
-
         <Text style={styles.descripcion}>
           Encuentra un viaje que se adapte a tu destino
         </Text>
 
         <View style={styles.tarjeta}>
           <Text style={styles.etiqueta}>Ciudad de origen</Text>
-
           <TextInput
             style={styles.input}
             placeholder="¿Desde dónde sales?"
@@ -148,7 +182,6 @@ export default function BuscarViajesScreen() {
           />
 
           <Text style={styles.etiqueta}>Ciudad de destino</Text>
-
           <TextInput
             style={styles.input}
             placeholder="¿Hacia dónde vas?"
@@ -165,15 +198,43 @@ export default function BuscarViajesScreen() {
               cargando && styles.botonDeshabilitado,
             ]}
             onPress={buscarViajes}
-            disabled={cargando}
-          >
+            disabled={cargando}>
             {cargando ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text style={styles.textoBoton}>Buscar viajes</Text>
             )}
           </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.botonSecundario,
+              pressed && styles.botonPresionado,
+              cargando && styles.botonDeshabilitado,
+            ]}
+            onPress={() => void buscarCercanas()}
+            disabled={cargando}>
+            <Text style={styles.textoBotonSecundario}>
+              Buscar rutas cerca de mí
+            </Text>
+          </Pressable>
         </View>
+
+        {ubicacion ? (
+          <View style={styles.tarjetaResultado}>
+            <Text style={styles.nombreRuta}>Tu ubicación real</Text>
+            <Text style={styles.dato}>
+              Latitud: {ubicacion.latitud.toFixed(5)} · Longitud:{' '}
+              {ubicacion.longitud.toFixed(5)}
+            </Text>
+            {motorGeo ? (
+              <Text style={styles.dato}>
+                Cálculo del backend: {motorGeo === 'postgis' ? 'PostGIS' : 'JavaScript'}
+              </Text>
+            ) : null}
+            <MapaIntegrado puntos={puntosMapa} altura={200} />
+          </View>
+        ) : null}
 
         <Text style={styles.resultados}>Viajes disponibles</Text>
 
@@ -189,96 +250,79 @@ export default function BuscarViajesScreen() {
         {!cargando && busquedaRealizada && resultados.length === 0 && (
           <View style={styles.vacio}>
             <Text style={styles.icono}>🚗</Text>
-            <Text style={styles.vacioTitulo}>
-              No encontramos rutas
-            </Text>
+            <Text style={styles.vacioTitulo}>No encontramos rutas</Text>
             <Text style={styles.vacioTexto}>
-              No hay recorridos registrados desde {origen} hasta {destino}.
-              Intenta con otras ciudades.
+              {ubicacion
+                ? 'No hay rutas registradas dentro de 15 km de tu ubicación real.'
+                : `No hay recorridos registrados desde ${origen} hasta ${destino}. Intenta con otras ciudades.`}
             </Text>
           </View>
         )}
 
-        {!cargando && resultados.map((ruta) => (
-          <View key={ruta.id} style={styles.tarjetaResultado}>
-            <Text style={styles.nombreRuta}>
-              {ruta.nombre ?? 'Ruta disponible'}
-            </Text>
-
-            <Text style={styles.dato}>
-              Origen: {ruta.origen?.nombre ?? 'No disponible'}
-            </Text>
-
-            <Text style={styles.dato}>
-              Destino: {ruta.destino?.nombre ?? 'No disponible'}
-            </Text>
-
-            {!!ruta.descripcion && (
-              <Text style={styles.dato}>
-                Descripción: {ruta.descripcion}
+        {!cargando &&
+          resultados.map((ruta) => (
+            <View key={ruta.id} style={styles.tarjetaResultado}>
+              <Text style={styles.nombreRuta}>
+                {ruta.nombre ?? 'Ruta disponible'}
               </Text>
-            )}
 
-            {ruta.distanciaKm != null && (
               <Text style={styles.dato}>
-                Distancia: {ruta.distanciaKm} km
+                Origen: {ruta.origen?.nombre ?? 'No disponible'}
               </Text>
-            )}
-
-            {ruta.tiempoEstimadoMinutos != null && (
               <Text style={styles.dato}>
-                Tiempo estimado: {ruta.tiempoEstimadoMinutos} minutos
+                Destino: {ruta.destino?.nombre ?? 'No disponible'}
               </Text>
-            )}
 
-            <View style={styles.separador} />
+              {!!ruta.descripcion && (
+                <Text style={styles.dato}>Descripción: {ruta.descripcion}</Text>
+              )}
+              {ruta.distanciaKm != null && (
+                <Text style={styles.dato}>Distancia: {ruta.distanciaKm} km</Text>
+              )}
+              {ruta.distanciaMetros != null && (
+                <Text style={styles.dato}>
+                  Cerca de ti: {ruta.distanciaMetros} m
+                </Text>
+              )}
+              {ruta.tiempoEstimadoMinutos != null && (
+                <Text style={styles.dato}>
+                  Tiempo estimado: {ruta.tiempoEstimadoMinutos} minutos
+                </Text>
+              )}
+              {ruta.costo != null && (
+                <Text style={styles.dato}>Costo: ${ruta.costo}</Text>
+              )}
 
-            <Text style={styles.subtitulo}>Horarios disponibles</Text>
+              <Pressable
+                style={styles.boton}
+                onPress={() =>
+                  router.push(
+                    `/crear-viaje?rutaId=${ruta.id}` as Parameters<
+                      typeof router.push
+                    >[0],
+                  )
+                }>
+                <Text style={styles.textoBoton}>Solicitar este viaje</Text>
+              </Pressable>
 
-            {ruta.horarios && ruta.horarios.length > 0 ? (
-              ruta.horarios.map((horario) => (
-                <View key={horario.id} style={styles.tarjetaHorario}>
-                  <Text style={styles.dato}>
-                    Placa: {horario.vehiculo?.placa ?? 'No disponible'}
-                  </Text>
+              <View style={styles.separador} />
+              <Text style={styles.subtitulo}>Horarios disponibles</Text>
 
-                  <Text style={styles.dato}>
-                    Empresa: {horario.vehiculo?.perfilEntidad?.razonSocial ?? 'No disponible'}
-                  </Text>
-
-                  <Text style={styles.dato}>
-                    Capacidad: {horario.vehiculo?.capacidadPasajeros ?? 'No disponible'} pasajeros
-                  </Text>
-
-                  <Text style={styles.dato}>
-                    Hora de salida: {horario.horaSalida ?? 'No disponible'}
-                  </Text>
-
-                  <Text style={styles.dato}>
-                    Frecuencia: {horario.frecuenciaMinutos != null
-                      ? `Cada ${horario.frecuenciaMinutos} minutos`
-                      : 'No disponible'}
-                  </Text>
-
-                  <View
-                    style={[
-                      styles.estadoVehiculo,
-                      { backgroundColor: obtenerEstadoColor(horario.vehiculo?.estado) },
-                    ]}
-                  >
-                    <Text style={styles.textoEstadoVehiculo}>
-                      {obtenerEstadoTexto(horario.vehiculo?.estado)}
+              {ruta.horarios && ruta.horarios.length > 0 ? (
+                <View style={styles.tarjetaHorario}>
+                  {ruta.horarios.map((hora, indice) => (
+                    <Text key={`${hora}-${indice}`} style={styles.dato}>
+                      Salida {indice + 1}: {hora}
                     </Text>
-                  </View>
+                  ))}
                 </View>
-              ))
-            ) : (
-              <Text style={styles.vacioTexto}>
-                No hay horarios registrados para esta ruta.
-              </Text>
-            )}
-          </View>
-        ))}
+              ) : (
+                <Text style={styles.vacioTexto}>
+                  No hay horarios registrados para esta ruta.
+                </Text>
+              )}
+            </View>
+          ))}
       </ScrollView>
     </>
   );
@@ -291,8 +335,17 @@ const styles = StyleSheet.create({
   },
   contenido: {
     padding: 24,
-    paddingTop: 65,
+    paddingTop: 45,
     paddingBottom: 35,
+  },
+  volver: {
+    alignSelf: 'flex-start',
+    marginBottom: 18,
+  },
+  volverTexto: {
+    color: '#07883F',
+    fontSize: 14,
+    fontWeight: '700',
   },
   marca: {
     color: '#07883F',
@@ -304,7 +357,7 @@ const styles = StyleSheet.create({
     color: '#202936',
     fontSize: 27,
     fontWeight: '800',
-    marginTop: 35,
+    marginTop: 24,
   },
   descripcion: {
     color: '#687385',
@@ -351,6 +404,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  botonSecundario: {
+    height: 46,
+    borderWidth: 1,
+    borderColor: '#F5C400',
+    backgroundColor: '#FFF8D9',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  textoBotonSecundario: {
+    color: '#1F2937',
+    fontSize: 14,
+    fontWeight: '800',
   },
   resultados: {
     color: '#202936',
@@ -424,18 +492,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 14,
-    marginBottom: 12,
-  },
-  estadoVehiculo: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginTop: 5,
-  },
-  textoEstadoVehiculo: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
+    marginBottom: 4,
   },
 });

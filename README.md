@@ -1,56 +1,108 @@
-# Welcome to your Expo app 👋
+# RutaGo · App móvil
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Cliente móvil de RutaGo construido con **Expo SDK 58**, React Native, Expo Router y TypeScript. Comparte el backend con la versión web (`rutago-backend`).
 
-## Get started
+## Configuración
 
-1. Install dependencies
+1. Instala dependencias:
 
 ```bash
 npm install
 ```
 
-2. Start the app
+2. Copia el ejemplo de entorno y ajusta la URL del backend:
 
 ```bash
-npx expo start
+cp .env.example .env
 ```
 
-In the output, you'll find options to open the app in a
+```env
+EXPO_PUBLIC_API_URL=https://rutago-backend-a303.onrender.com
+```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+`EXPO_PUBLIC_API_URL` se incrusta en el bundle (Expo sólo expone variables `EXPO_PUBLIC_`). **Nunca pongas secretos aquí.** El cliente añade `/api` a esta URL.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+3. Inicia la app:
 
 ```bash
-npm run reset-project
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Rutas y sesión
 
-### Other setup steps
+| Ruta | Acceso | Descripción |
+| --- | --- | --- |
+| `/` | Público | Inicio de sesión. |
+| `/recuperar-password` | Público | Solicitud de enlace y restablecimiento con `?token=`. |
+| `/dashboard` | Autenticado | Panel por rol real: `Administrador`, `Conductor` o `Pasajero`. `Entidad Externa` queda fuera del alcance móvil. |
+| `/buscar-viajes` | Autenticado | Búsqueda real de rutas por destino y origen. |
+| `/mis-viajes` | Autenticado | Viajes propios desde `/viajes/me/mis-viajes`; el conductor puede iniciar/finalizar/cancelar y el pasajero cancelar. Los viajes aceptados/en curso muestran la posición inicial de `/vehiculos/:id/ubicacion` y la actualizan con eventos `ubicacion` de la sala `viaje:<id>`. |
+| `/mis-solicitudes` | Autenticado | Pasajero: solicitudes pendientes filtradas de su historial. Conductor: `/viajes/disponibles` con aceptación real. |
+| `/crear-viaje` | Pasajero | Solicitud real con rutas y horarios de `/rutas` y `/horarios/ruta/:id`. |
+| `/viajes-disponibles` | Pasajero | Viajes en estado BUSCANDO desde `/viajes/disponibles-pasajero`, con unión real por `/unirse`. |
+| `/aceptar-viaje` | Conductor | Aceptación con `vehiculoId` real desde `/vehiculos`. |
+| `/reportar-ubicacion` | Conductor | GPS real con `expo-location` hacia `/vehiculos/:id/ubicacion`. |
+| `/panel-gestion` | Administrador | Módulos y conteos consultados a los endpoints reales. |
+| `/gestion` | Administrador | Listado, búsqueda, alta, edición y baja por recurso. |
+| `/gestion-detalle` | Administrador | Formulario real por recurso, con opciones cargadas del backend. |
+| `/crear-notificacion` | Administrador | Notificación interna persistida y difundida por WebSocket. |
+| `/mi-perfil` | Autenticado | Datos comunes, datos de pasajero o licencia/estado de conductor según el rol. |
+| `/notificaciones` | Autenticado | Lista persistida en `/notificaciones`, marca de leído y refresco por WebSocket autenticado. |
+| `/explore` | Público | Pantalla de ejemplo del template Expo. |
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+La sesión se guarda en `expo-secure-store` (`token`, `refreshToken`, `rutago_user`). El interceptor de Axios renueva el access token con `/api/auth/refresh`; si falla, borra **las tres** claves y redirige al login. `src/app/_layout.tsx` usa `Stack.Protected` para impedir navegación a pantallas privadas sin sesión. El perfil se toma del backend (no se confía en un rol escrito en el cliente).
 
-## Learn more
+### Deep link de recuperación
 
-To learn more about developing your project with Expo, look at the following resources:
+El esquema configurado en `app.json` es `rutagomobile`. Para que el correo abra la app directamente, configura en el backend:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```env
+PASSWORD_RESET_URL=rutagomobile://recuperar-password
+```
 
-## Join the community
+Enlace resultante: `rutagomobile://recuperar-password?token=<token>`. Sin esa variable, el backend usa `FRONTEND_URL/recuperar-password` (versión web).
 
-Join our community of developers creating universal apps.
+## Contrato de API
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Las respuestas exitosas usan `{ success: true, data: ... }`. Los helpers `extraerDatos` y `extraerLista` (`src/services/api.ts`) hacen el unwrap.
+- `GET /api/rutas/destino/:destino` devuelve rutas con `horarios: string[]` (sólo horas). El DTO del backend **no incluye** placa, empresa ni estado del vehículo, por lo que la app no inventa esos datos.
+- Un `404` en la búsqueda se trata como “sin resultados”, no como error de red.
+- `GET /viajes/me/mis-viajes`, `GET /viajes/disponibles`, `GET /notificaciones`, `GET/PUT /usuarios/me/perfil` y `PUT /usuarios/me/contrasena` son las fuentes reales de las nuevas pantallas. Ninguna usa datos de ejemplo.
+- El canal en tiempo real escucha `ws(s)://<backend>/ws?token=<accessToken>` con el token de la sesión. Los eventos `notificacion` y `notificacion_leida` refrescan la lista; si el socket no conecta, la pantalla sigue funcionando con el REST y **no simula** eventos.
+- Para el seguimiento, el cliente se suscribe a `viaje:<id>` (validado en backend por propiedad real) y aplica los eventos `ubicacion`. El botón “Abrir mapa” abre OpenStreetMap con las coordenadas reportadas; no se dibuja un bus inventado cuando no hay datos.
+
+## Verificación
+
+```bash
+npx tsc --noEmit
+npm run lint
+npx expo export --platform web --output-dir <ruta-temporal>
+```
+
+Todos los comandos pasan sin errores: `npx tsc --noEmit` y `npm run lint` sin hallazgos; `npx expo export --platform web` compila 14 bundles y genera **11 rutas estáticas** (antes 7), incluidas las cuatro nuevas. No se generan artefactos dentro del repositorio: la exportación se hace en una ruta temporal.
+
+`.github/workflows/ci.yml` repite `npm ci`, `npx tsc --noEmit` y `npm run lint` en pushes y PRs de `feature-ASEG1999`, `dev` y `main`. El build/submit con EAS queda pendiente de credenciales de Expo.
+
+## EAS (preparado, sin ejecutar)
+
+`eas.json` define los perfiles `development`, `preview` y `production`. Aún no se han generado binarios ni enviado nada a tiendas. Cuando exista cuenta Expo y permisos sobre el proyecto:
+
+```bash
+npx eas-cli login
+npx eas-cli init
+npx eas-cli build --profile preview --platform android
+npx eas-cli build --profile production --platform ios
+npx eas-cli submit --profile production --platform android
+```
+
+Antes del build definitivo confirma `EXPO_PUBLIC_API_URL` y `PASSWORD_RESET_URL` con la URL del backend elegida.
+
+## Sprints y cierre
+
+Consulta [`SPRINTS.md`](SPRINTS.md) para el resumen cross-repo, commits, evidencia de pruebas y riesgos pendientes.
+
+## Funciones pendientes (sin simular éxito)
+
+- Publicación de nuevos viajes y panel administrativo desde la app: siguen en la versión web; el móvil ya gestiona viajes propios, solicitudes, perfil y notificaciones internas con datos reales.
+- Mapa embebido dentro de la app y push del sistema operativo: las coordenadas en vivo y la apertura del mapa externo ya funcionan con datos reales; el mapa nativo integrado requiere una dependencia adicional y el push requiere proveedor externo.
+- CI/CD con EAS build/submit (requiere cuenta y credenciales de Expo).

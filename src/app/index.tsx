@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,21 +9,49 @@ import {
   Text,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { Button, Card, Input, useToast } from '@/components/ui';
 import { Colores, Espacios, Radios, Tipografia } from '@/constants/tema';
-import { iniciarSesion } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  obtenerEstadoBiometria,
+  type EstadoBiometria,
+} from '@/services/biometria';
+import { esCorreoValido } from '@/utils/validacion';
 
 export default function HomeScreen() {
-  const [correo, setCorreo] = useState('');
+  const parametros = useLocalSearchParams<{ correo?: string }>();
+  const { iniciarSesion, iniciarSesionBiometrica } = useAuth();
+  const [correo, setCorreo] = useState(
+    typeof parametros.correo === 'string' ? parametros.correo : '',
+  );
   const [contrasena, setContrasena] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [cargandoBiometria, setCargandoBiometria] = useState(false);
+  const [biometria, setBiometria] = useState<EstadoBiometria>({
+    disponible: false,
+    tipo: 'ninguna',
+    etiqueta: '',
+  });
   const [errorCorreo, setErrorCorreo] = useState<string | undefined>();
   const [errorContrasena, setErrorContrasena] = useState<string | undefined>();
   const { mostrar } = useToast();
 
+  /** Consulté el hardware real para mostrar el acceso biométrico sólo cuando existe. */
+  useEffect(() => {
+    let activo = true;
+    void obtenerEstadoBiometria().then((estado) => {
+      if (activo) setBiometria(estado);
+    });
+    return () => {
+      activo = false;
+    };
+  }, []);
+
   const manejarInicioSesion = async () => {
+    if (cargando) return;
+
     setErrorCorreo(undefined);
     setErrorContrasena(undefined);
 
@@ -30,6 +59,9 @@ export default function HomeScreen() {
 
     if (!correo.trim()) {
       setErrorCorreo('Ingresa tu correo electrónico');
+      valido = false;
+    } else if (!esCorreoValido(correo)) {
+      setErrorCorreo('Ingresa un correo electrónico válido');
       valido = false;
     }
 
@@ -56,6 +88,26 @@ export default function HomeScreen() {
       );
     } finally {
       setCargando(false);
+    }
+  };
+
+  /** Conecté el botón biométrico con la reanudación real de sesión del backend. */
+  const manejarBiometria = async () => {
+    if (cargandoBiometria || cargando) return;
+    setCargandoBiometria(true);
+    try {
+      await iniciarSesionBiometrica();
+      mostrar('Sesión iniciada con biometría', { tipo: 'exito' });
+      router.replace('/dashboard');
+    } catch (error) {
+      mostrar(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo iniciar sesión con biometría',
+        { tipo: 'error' },
+      );
+    } finally {
+      setCargandoBiometria(false);
     }
   };
 
@@ -110,11 +162,7 @@ export default function HomeScreen() {
 
           <Pressable
             style={styles.olvido}
-            onPress={() =>
-              mostrar('La recuperación de contraseña aún no está conectada', {
-                tipo: 'info',
-              })
-            }>
+            onPress={() => router.push('/recuperar-password')}>
             <Text style={styles.olvidoTexto}>¿Olvidaste tu contraseña?</Text>
           </Pressable>
 
@@ -125,14 +173,35 @@ export default function HomeScreen() {
             onPress={manejarInicioSesion}
           />
 
+          {biometria.disponible ? (
+            <Pressable
+              testID="boton-biometria"
+              style={styles.biometria}
+              disabled={cargandoBiometria || cargando}
+              onPress={manejarBiometria}>
+              <MaterialCommunityIcons
+                name={
+                  biometria.tipo === 'faceid'
+                    ? 'face-recognition'
+                    : 'fingerprint'
+                }
+                size={22}
+                color={Colores.primario}
+              />
+              <Text style={styles.biometriaTexto}>
+                {cargandoBiometria
+                  ? 'Verificando identidad...'
+                  : `Entrar con ${biometria.etiqueta}`}
+              </Text>
+            </Pressable>
+          ) : null}
+
           <View style={styles.registro}>
             <Text style={styles.registroEtiqueta}>¿No tienes una cuenta? </Text>
 
             <Pressable
               onPress={() =>
-                mostrar('El registro desde esta pantalla aún no está conectado', {
-                  tipo: 'info',
-                })
+                router.push('/registro' as Parameters<typeof router.push>[0])
               }>
               <Text style={styles.registroEnlace}>Regístrate</Text>
             </Pressable>
@@ -211,6 +280,23 @@ const styles = StyleSheet.create({
     color: Colores.primario,
     fontSize: Tipografia.etiqueta,
     fontWeight: '600',
+  },
+  biometria: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Espacios.sm,
+    minHeight: 48,
+    marginTop: Espacios.md,
+    borderRadius: Radios.grande,
+    borderWidth: 1,
+    borderColor: Colores.borde,
+    backgroundColor: Colores.fondo,
+  },
+  biometriaTexto: {
+    color: Colores.primario,
+    fontSize: Tipografia.etiqueta,
+    fontWeight: '700',
   },
   registro: {
     flexDirection: 'row',
