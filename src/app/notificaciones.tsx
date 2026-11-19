@@ -15,7 +15,9 @@ import { Stack } from 'expo-router';
 import { volverSeguro } from '@/utils/navegacion';
 
 import { useRealtime } from '@/hooks/useRealtime';
+import { useSesion } from '@/hooks/useSesion';
 import { api, extraerLista } from '@/services/api';
+import { obtenerConCache } from '@/services/offline';
 import {
   mostrarNotificacionLocal,
   registrarNotificaciones,
@@ -45,6 +47,7 @@ function fechaLegible(valor?: string): string {
 }
 
 export default function NotificacionesScreen() {
+  const { usuario } = useSesion();
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
@@ -52,8 +55,14 @@ export default function NotificacionesScreen() {
 
   const cargar = useCallback(async () => {
     try {
-      const respuesta = await api.get<unknown>('/notificaciones');
-      setNotificaciones(extraerLista<Notificacion>(respuesta.data));
+      const { datos } = await obtenerConCache<Notificacion[]>(
+        `notificaciones-${usuario?.id ?? 'anon'}`,
+        async () => {
+          const respuesta = await api.get<unknown>('/notificaciones');
+          return extraerLista<Notificacion>(respuesta.data);
+        },
+      );
+      setNotificaciones(datos);
     } catch (error) {
       console.error('Error al cargar notificaciones:', mensajeError(error));
       Alert.alert('Error', mensajeError(error));
@@ -61,7 +70,7 @@ export default function NotificacionesScreen() {
       setCargando(false);
       setRefrescando(false);
     }
-  }, []);
+  }, [usuario]);
 
   useEffect(() => {
     void Promise.resolve().then(cargar);
