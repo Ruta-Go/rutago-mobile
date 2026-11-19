@@ -40,3 +40,7 @@ jobs:
       # Agregué Jest al CI para que ningún merge pase con pruebas fallidas.
       - name: Ejecutar pruebas
         run: npm test
+
+      # Exporté el bundle web para detectar rutas e imports que tsc y lint no ven.
+      - name: Exportar bundle web
+        run: npx expo export --platform web --output-dir .expo-export
