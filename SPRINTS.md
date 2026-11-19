@@ -24,6 +24,11 @@ Cierre integral de RutaGo **sin reconstruir** el proyecto: se auditaron los tres
 | Sprint 7 / T5 · Campana web | `rutago-frontend` | `GET/PATCH /notificaciones` y eventos WS en el `Navbar`, con contador real | `e52d5a5` | Sí (`34d719d..fe09678`) |
 | Sprint 7 / T6 · GPS en móvil | `rutago-mobile` | Posición inicial por REST, eventos `ubicacion` en `viaje:<id>` y apertura de mapa externo con coordenadas reales | `3ebcd76` | Sí (`270e45e..83437c1`) |
 | Sprint 7 / T7 · Mapa de flota | `rutago-frontend` | `/vehiculos/mapa`: posiciones iniciales de `GET /vehiculos`, eventos por sala `vehiculo:<id>` y listado lateral real | `903cefa` | Sí (`fe09678..dd62b4c`) |
+| Sprint 8 · Accesibilidad móvil | `rutago-mobile` | `Input` compartido con etiqueta, estado y error anunciados | `f64e862` | Sí |
+| Sprint 8 · CI móvil | `rutago-mobile` | Jest y exportación real del bundle web agregados al workflow | `1d45a5a`, `7d3b279` | Sí |
+| Sprint 8 · Notificaciones del SO | `rutago-mobile` | Permisos, token de Expo desde `app.json` y avisos locales de eventos reales | `4311069`, `14bde93` | Sí |
+| Sprint 8 · Offline | `rutago-mobile` | Caché cifrada de viajes y notificaciones con fallback real sin red | `702acc7` | Sí |
+| Sprint 8 · GPS en segundo plano | `rutago-mobile` | Tarea del sistema, permisos y envío real de coordenadas con la app en segundo plano | `db13257` | Sí |
 
 ## Verificación ejecutada
 
@@ -34,14 +39,15 @@ Cierre integral de RutaGo **sin reconstruir** el proyecto: se auditaron los tres
 | `rutago-frontend` | `npx vite build --outDir <ruta-temporal>` | 2002 módulos transformados, sin errores |
 | `rutago-mobile` | `npx tsc --noEmit` | Sin errores |
 | `rutago-mobile` | `npm run lint` | Sin errores (equivale a `npx expo lint`) |
-| `rutago-mobile` | `npx expo export --platform web --output-dir <ruta-temporal>` | 14 bundles y 11 rutas estáticas exportadas, sin errores |
+| `rutago-mobile` | `npm test` | 35/35 pruebas correctas (9 suites) |
+| `rutago-mobile` | `npx expo export --platform web --output-dir .expo-export` | 21 bundles y 19 rutas estáticas exportadas, sin errores; paso incluido en la CI |
 | Backend en vivo | `GET https://rutago-backend-a303.onrender.com/api/ping` | 200 |
 | Frontend en vivo | `GET https://rutago.seminario1.eleueleo.com/` | Dominio vencido (Hostinger): los 4 checks de Fase 2 están bloqueados |
 | Móvil | `eas.json` | Perfiles EAS preparados; requiere cuenta Expo para ejecutarlos |
 | Los tres | `git ls-files` filtrado por `.env` | Sólo `.env.example` está versionado |
 | Los tres | `git grep` de patrones de credenciales | Sin coincidencias reales |
 
-No se generaron artefactos (`dist`, `web-build`) dentro de los repositorios.
+No se generaron artefactos versionados (`dist`, `web-build`, `.expo-export`) dentro de los repositorios.
 
 ## Decisiones técnicas
 
@@ -52,8 +58,9 @@ No se generaron artefactos (`dist`, `web-build`) dentro de los repositorios.
 5. **Horarios reales:** `GET /api/rutas/destino/:destino` devuelve `horarios: string[]`. El móvil muestra horas reales y **no inventa** placa, empresa ni estado de vehículo porque el DTO no los incluye.
 6. **Sin secretos:** `.env` nunca se publicó ni se incluyó en commits. Las variables públicas son sólo `VITE_API_URL` y `EXPO_PUBLIC_API_URL`.
 7. **CI/CD:** deploy web con `npm ci`; el script de producción ya **no genera** `JWT_SECRET` automáticamente (falla con mensaje si falta). El móvil tiene CI de `tsc`/lint; EAS build/submit sigue pendiente de credenciales.
-8. **Tiempo real implementado:** se reutiliza el REST de GPS existente; `/ws` sólo difunde eventos y `rutaGeometria` ya existente evita migraciones espaciales. El móvil consume notificaciones persistentes y, en viajes aceptados/en curso, muestra coordenadas reales con posición inicial por REST y eventos `ubicacion` en la sala autorizada `viaje:<id>`; “Abrir mapa” usa esas coordenadas. Siguen diferidos el mapa nativo embebido, el push del SO y EAS; el panel administrativo móvil ya está implementado con CRUD real y notificaciones internas.
+8. **Tiempo real implementado:** se reutiliza el REST de GPS existente; `/ws` sólo difunde eventos y `rutaGeometria` ya existente evita migraciones espaciales. El móvil consume notificaciones persistentes y, en viajes aceptados/en curso, muestra coordenadas reales con posición inicial por REST y eventos `ubicacion` en la sala autorizada `viaje:<id>`; “Abrir mapa” usa esas coordenadas. El mapa nativo embebido, el push local con registro de token y el GPS en segundo plano ya están integrados; EAS build/submit sigue pendiente de cuenta Expo. El panel administrativo móvil está implementado con CRUD real y notificaciones internas.
 9. **Estado del dominio:** `rutago.seminario1.eleueleo.com` responde con la página de dominio vencido de Hostinger; por eso no se pueden ejecutar los 4 checks de Fase 2 en vivo. El backend de Render sigue en 200. Renovar el dominio o publicar el frontend en otra URL antes de la demo.
+10. **Caché offline y push:** viajes y notificaciones se guardan en `SecureStore` y se reutilizan sólo cuando falla la red; sin caché se propaga el error. El registro de push lee el `projectId` publicado en `app.json`, pero el envío remoto requiere un proveedor externo configurado por el equipo.
 
 ## Restricciones respetadas
 
@@ -70,6 +77,7 @@ No se generaron artefactos (`dist`, `web-build`) dentro de los repositorios.
 4. **Ejecutar los 4 checks de Fase 2** una vez el frontend esté accesible (requiere credenciales de prueba).
 5. **EAS build/submit** cuando se disponga de cuenta Expo; ejecutar antes `npx eas-cli init`.
 6. **Ejecutar** `npx eas-cli init` **y configurar la cuenta Expo** antes de usar `eas.json`.
+7. **Configurar el proveedor de push remoto** y registrar los tokens obtenidos en el backend; hoy el móvil solicita permisos, obtiene el token y muestra notificaciones locales, pero no existe un canal de envío externo.
 
 ## Comandos de push
 
