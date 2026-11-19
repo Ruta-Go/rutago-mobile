@@ -16,6 +16,10 @@ import { volverSeguro } from '@/utils/navegacion';
 
 import { useRealtime } from '@/hooks/useRealtime';
 import { api, extraerLista } from '@/services/api';
+import {
+  mostrarNotificacionLocal,
+  registrarNotificaciones,
+} from '@/services/notificaciones';
 import type { Notificacion } from '@/types/rutago';
 
 function mensajeError(error: unknown): string {
@@ -63,7 +67,22 @@ export default function NotificacionesScreen() {
     void Promise.resolve().then(cargar);
   }, [cargar]);
 
+  // Preparé permisos y token al abrir el centro de notificaciones, sin pedirlos en el arranque.
+  useEffect(() => {
+    void registrarNotificaciones();
+  }, []);
+
   useRealtime((evento) => {
+    if (evento.tipo === 'notificacion') {
+      const datos = evento.payload ?? {};
+      const titulo =
+        typeof datos.titulo === 'string' ? datos.titulo : 'Nueva notificación';
+      const cuerpo =
+        typeof datos.mensaje === 'string'
+          ? datos.mensaje
+          : 'Tienes un aviso real de RutaGo.';
+      void mostrarNotificacionLocal(titulo, cuerpo);
+    }
     if (
       evento.tipo === 'notificacion' ||
       evento.tipo === 'notificacion_leida'
