@@ -48,10 +48,14 @@
   },
   "scripts": {
     "start": "expo start",
+    "start:tunnel": "expo start --tunnel",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
+    "android:tunnel": "expo start --android --tunnel",
     "ios": "expo start --ios",
+    "ios:tunnel": "expo start --ios --tunnel",
     "web": "expo start --web",
+    "check:api": "node ./scripts/verificar-api.js",
     "lint": "expo lint",
     "test": "jest --runInBand"
   },
