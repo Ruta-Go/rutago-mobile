@@ -49,7 +49,10 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "RutaGo usa tu ubicación para reportar el avance del viaje a los pasajeros."
+          "locationWhenInUsePermission": "RutaGo usa tu ubicación para reportar el avance del viaje a los pasajeros.",
+          "locationAlwaysPermission": "RutaGo usa tu ubicación en segundo plano para seguir reportando el viaje.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true
         }
       ]
     ],

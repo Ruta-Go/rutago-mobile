@@ -22,6 +22,11 @@ import {
 import { ROLES } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import { api, extraerDatos, extraerLista } from '@/services/api';
+import {
+  detenerGpsFondo,
+  gpsFondoActivo,
+  iniciarGpsFondo,
+} from '@/services/gpsFondo';
 import type { Viaje } from '@/types/rutago';
 import { idEstado, nombreEstado, tituloRuta } from '@/utils/viajes';
 
@@ -62,6 +67,7 @@ export default function ReportarUbicacionScreen() {
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [monitoreando, setMonitoreando] = useState(false);
+  const [fondoActivo, setFondoActivo] = useState(false);
   const [ultimoReporte, setUltimoReporte] = useState<UltimoReporte | null>(null);
   const suscripcion = useRef<SuscripcionGPS | null>(null);
 
@@ -99,6 +105,17 @@ export default function ReportarUbicacionScreen() {
     },
     [],
   );
+
+  // Recuperé el estado real del reporte en segundo plano al abrir la pantalla.
+  useEffect(() => {
+    let activo = true;
+    void gpsFondoActivo().then((valor) => {
+      if (activo) setFondoActivo(valor);
+    });
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const viaje = viajes.find((item) => item.id === viajeId) ?? null;
   const vehiculoId = viaje?.vehiculo?.id;
@@ -252,6 +269,48 @@ export default function ReportarUbicacionScreen() {
     }
   };
 
+  const alternarFondo = async () => {
+    if (rolId !== ROLES.CONDUCTOR) {
+      Alert.alert('Rol no permitido', 'Sólo un conductor puede reportar ubicación.');
+      return;
+    }
+    if (!viaje?.vehiculo?.id) {
+      Alert.alert('Sin vehículo', 'Selecciona un viaje con vehículo asignado.');
+      return;
+    }
+    try {
+      if (fondoActivo) {
+        await detenerGpsFondo();
+        setFondoActivo(false);
+        Alert.alert('GPS en segundo plano detenido', 'Dejamos de reportar la posición.');
+        return;
+      }
+      const estadoId =
+        idEstado(viaje) === ESTADOS_VIAJE.EN_CURSO
+          ? ESTADOS_VEHICULO.EN_RUTA
+          : ESTADOS_VEHICULO.PROXIMO;
+      const iniciado = await iniciarGpsFondo(
+        viaje.vehiculo.id,
+        viaje.id,
+        estadoId,
+      );
+      if (!iniciado) {
+        Alert.alert(
+          'Permiso denegado',
+          'Debes permitir la ubicación en segundo plano para usar esta opción.',
+        );
+        return;
+      }
+      setFondoActivo(true);
+      Alert.alert(
+        'GPS en segundo plano activo',
+        'Reportaremos tu coordenada aunque salgas de la pantalla.',
+      );
+    } catch (error) {
+      Alert.alert('Error', mensajeError(error));
+    }
+  };
+
   const puntosMapa: PuntoMapa[] = ultimoReporte
     ? [
         {
@@ -338,6 +397,15 @@ export default function ReportarUbicacionScreen() {
                     disabled={enviando}>
                     <Text style={styles.textoBotonSecundario}>
                       {monitoreando ? 'Detener reporte automático' : 'Reportar cada 10 segundos'}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.botonSecundario}
+                    onPress={() => void alternarFondo()}>
+                    <Text style={styles.textoBotonSecundario}>
+                      {fondoActivo
+                        ? 'Detener GPS en segundo plano'
+                        : 'Activar GPS en segundo plano'}
                     </Text>
                   </Pressable>
                 </View>

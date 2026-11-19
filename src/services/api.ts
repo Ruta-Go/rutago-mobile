@@ -7,7 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 
 // EXPO_PUBLIC_ se incrusta en el bundle; nunca poner secretos aquí.
-const API_URL =
+export const API_URL =
   process.env.EXPO_PUBLIC_API_URL || 'https://rutago-backend-a303.onrender.com';
 
 /** Mismo host, protocolo WS/WSS. Se deriva para no duplicar configuración. */
