@@ -48,6 +48,14 @@ export function Input({
       : Colores.borde;
   const colorTexto = editable ? Colores.texto : Colores.textoTerciario;
 
+  // Expuse la etiqueta visual como nombre accesible del campo y respeté el estado externo.
+  const nombreAccesible =
+    resto.accessibilityLabel ?? etiqueta ?? resto.placeholder;
+  const estadoAccesible = {
+    ...resto.accessibilityState,
+    disabled: !editable,
+  };
+
   return (
     <View style={[styles.contenedor, contenedorStyle]}>
       {etiqueta ? (
@@ -67,6 +75,8 @@ export function Input({
 
         <TextInput
           {...resto}
+          accessibilityLabel={nombreAccesible}
+          accessibilityState={estadoAccesible}
           style={[styles.entrada, { color: colorTexto }]}
           placeholderTextColor={Colores.textoTerciario}
           editable={editable}
@@ -100,7 +110,13 @@ export function Input({
       </View>
 
       {tieneError ? (
-        <Text style={styles.error}>{error}</Text>
+        // Marqué el error como alerta para que el lector de pantalla lo anuncie al aparecer.
+        <Text
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          style={styles.error}>
+          {error}
+        </Text>
       ) : ayuda ? (
         <Text style={styles.ayuda}>{ayuda}</Text>
       ) : null}
