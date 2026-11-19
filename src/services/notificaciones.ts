@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import * as Notificaciones from 'expo-notifications';
 import { Platform } from 'react-native';
 
@@ -5,7 +6,7 @@ let manejadorInstalado = false;
 
 /**
  * Registré permisos y el token público de Expo cuando hay proyecto configurado.
- * Sin `EXPO_PUBLIC_EAS_PROJECT_ID` no invento un token: las notificaciones locales siguen funcionando.
+ * Sin projectId de Expo no invento un token: las notificaciones locales siguen funcionando.
  */
 export async function registrarNotificaciones(): Promise<string | null> {
   if (Platform.OS === 'web') return null;
@@ -28,7 +29,11 @@ export async function registrarNotificaciones(): Promise<string | null> {
     : await Notificaciones.requestPermissionsAsync();
   if (!permiso.granted) return null;
 
-  const projectId = process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
+  // Tomé el projectId publicado en app.json y permití sobreescribirlo con la variable pública.
+  const projectId =
+    process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
+    (Constants.expoConfig?.extra?.eas as { projectId?: string } | undefined)
+      ?.projectId;
   if (!projectId) return null;
 
   try {
