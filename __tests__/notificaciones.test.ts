@@ -8,6 +8,14 @@ jest.mock('expo-notifications', () => ({
   scheduleNotificationAsync: jest.fn(),
 }));
 
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: {
+    expoConfig: { extra: { eas: { projectId: undefined as string | undefined } } },
+  },
+}));
+
+import Constants from 'expo-constants';
 import * as Notificaciones from 'expo-notifications';
 
 import {
@@ -18,10 +26,14 @@ import {
 const programar = Notificaciones.scheduleNotificationAsync as jest.Mock;
 const permisos = Notificaciones.getPermissionsAsync as jest.Mock;
 const token = Notificaciones.getExpoPushTokenAsync as jest.Mock;
+const configuracion = Constants as unknown as {
+  expoConfig: { extra: { eas: { projectId?: string } } };
+};
 
 describe('servicio de notificaciones', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    configuracion.expoConfig.extra.eas.projectId = undefined;
     permisos.mockResolvedValue({ granted: true });
     token.mockResolvedValue({ data: 'ExpoPushToken[demo]' });
   });
@@ -40,15 +52,18 @@ describe('servicio de notificaciones', () => {
   });
 
   it('no inventó token remoto sin proyecto de Expo configurado', async () => {
-    const anterior = process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
-    delete process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
-
     const resultado = await registrarNotificaciones();
 
     expect(resultado).toBeNull();
     expect(token).not.toHaveBeenCalled();
-    if (anterior !== undefined) {
-      process.env.EXPO_PUBLIC_EAS_PROJECT_ID = anterior;
-    }
+  });
+
+  it('usó el projectId de app.json para obtener el token', async () => {
+    configuracion.expoConfig.extra.eas.projectId = 'id-desde-config';
+
+    const resultado = await registrarNotificaciones();
+
+    expect(resultado).toBe('ExpoPushToken[demo]');
+    expect(token).toHaveBeenCalledWith({ projectId: 'id-desde-config' });
   });
 });
