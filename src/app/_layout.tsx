@@ -1,10 +1,12 @@
-import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { ToastProvider } from '@/components/ui';
 import { ROLES } from '@/constants/roles';
 import { SesionProvider, useSesion } from '@/hooks/useSesion';
+import { escucharTapPush } from '@/services/notificaciones';
 
 function Navegador() {
   const { token, usuario, cargando } = useSesion();
@@ -52,6 +54,16 @@ function Navegador() {
 }
 
 export default function RootLayout() {
+  const router = useRouter();
+
+  useEffect(
+    () =>
+      escucharTapPush((destino) => {
+        router.push(destino as Parameters<typeof router.push>[0]);
+      }),
+    [router],
+  );
+
   return (
     <ToastProvider>
       <SesionProvider>
