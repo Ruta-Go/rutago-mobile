@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   Pressable,
   StyleSheet,
@@ -89,9 +90,11 @@ export function Input({
               contrasenaVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'
             }
             style={styles.accion}>
-            <Text style={styles.accionTexto}>
-              {contrasenaVisible ? 'Ocultar' : 'Ver'}
-            </Text>
+            <Ionicons
+              name={contrasenaVisible ? 'eye-off-outline' : 'eye-outline'}
+              size={22}
+              color={Colores.primario}
+            />
           </Pressable>
         ) : null}
       </View>

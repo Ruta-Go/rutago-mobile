@@ -8,16 +8,20 @@ import {
   Text,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { Button, Card, Input, useToast } from '@/components/ui';
 import { Colores, Espacios, Radios, Tipografia } from '@/constants/tema';
 import { useSesion } from '@/hooks/useSesion';
 import { iniciarSesion } from '@/services/authService';
+import { esCorreoValido } from '@/utils/validacion';
 
 export default function HomeScreen() {
+  const parametros = useLocalSearchParams<{ correo?: string }>();
   const { refrescarSesion } = useSesion();
-  const [correo, setCorreo] = useState('');
+  const [correo, setCorreo] = useState(
+    typeof parametros.correo === 'string' ? parametros.correo : '',
+  );
   const [contrasena, setContrasena] = useState('');
   const [cargando, setCargando] = useState(false);
   const [errorCorreo, setErrorCorreo] = useState<string | undefined>();
@@ -25,6 +29,8 @@ export default function HomeScreen() {
   const { mostrar } = useToast();
 
   const manejarInicioSesion = async () => {
+    if (cargando) return;
+
     setErrorCorreo(undefined);
     setErrorContrasena(undefined);
 
@@ -32,6 +38,9 @@ export default function HomeScreen() {
 
     if (!correo.trim()) {
       setErrorCorreo('Ingresa tu correo electrónico');
+      valido = false;
+    } else if (!esCorreoValido(correo)) {
+      setErrorCorreo('Ingresa un correo electrónico válido');
       valido = false;
     }
 
@@ -129,9 +138,7 @@ export default function HomeScreen() {
 
             <Pressable
               onPress={() =>
-                mostrar('El registro está disponible en la versión web de RutaGo', {
-                  tipo: 'info',
-                })
+                router.push('/registro' as Parameters<typeof router.push>[0])
               }>
               <Text style={styles.registroEnlace}>Regístrate</Text>
             </Pressable>

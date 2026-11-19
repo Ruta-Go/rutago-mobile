@@ -20,6 +20,7 @@ function Navegador() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!token} redirectTo="/dashboard">
         <Stack.Screen name="index" />
+        <Stack.Screen name="registro" />
         <Stack.Screen name="recuperar-password" />
       </Stack.Protected>
 

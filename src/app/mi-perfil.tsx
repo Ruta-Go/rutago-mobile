@@ -16,6 +16,7 @@ import {
   OPCIONES_ESTADO_CONDUCTOR,
   NOMBRES_ESTADO_CONDUCTOR,
 } from '@/constants/estados';
+import { Input } from '@/components/ui';
 import { ROLES, nombreRol } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import {
@@ -24,6 +25,7 @@ import {
   guardarUsuarioSesion,
 } from '@/services/api';
 import type { Perfil } from '@/types/rutago';
+import { MENSAJE_PASSWORD, validarPassword } from '@/utils/validacion';
 
 type DatosPasajero = NonNullable<Perfil['pasajero']>;
 
@@ -190,11 +192,17 @@ export default function MiPerfilScreen() {
   };
 
   const cambiarContrasena = async () => {
+    if (guardando) return;
     if (!contrasenaActual || !nuevaContrasena) {
       Alert.alert(
         'Datos incompletos',
         'Ingresa tu contraseña actual y la nueva.',
       );
+      return;
+    }
+    const mensajePassword = validarPassword(nuevaContrasena);
+    if (mensajePassword) {
+      Alert.alert('Contraseña insegura', MENSAJE_PASSWORD);
       return;
     }
     if (nuevaContrasena !== confirmarContrasena) {
@@ -412,29 +420,33 @@ export default function MiPerfilScreen() {
 
             <Text style={styles.subtitulo}>Contraseña</Text>
             <View style={styles.tarjeta}>
-              <Text style={styles.etiqueta}>Contraseña actual</Text>
-              <TextInput
-                style={styles.input}
+              <Input
+                etiqueta="Contraseña actual"
+                esContrasena
                 value={contrasenaActual}
                 onChangeText={setContrasenaActual}
-                secureTextEntry
                 autoCapitalize="none"
+                autoComplete="current-password"
+                contenedorStyle={styles.campo}
               />
-              <Text style={styles.etiqueta}>Nueva contraseña</Text>
-              <TextInput
-                style={styles.input}
+              <Input
+                etiqueta="Nueva contraseña"
+                esContrasena
                 value={nuevaContrasena}
                 onChangeText={setNuevaContrasena}
-                secureTextEntry
                 autoCapitalize="none"
+                autoComplete="new-password"
+                ayuda={MENSAJE_PASSWORD}
+                contenedorStyle={styles.campo}
               />
-              <Text style={styles.etiqueta}>Confirmar nueva contraseña</Text>
-              <TextInput
-                style={styles.input}
+              <Input
+                etiqueta="Confirmar nueva contraseña"
+                esContrasena
                 value={confirmarContrasena}
                 onChangeText={setConfirmarContrasena}
-                secureTextEntry
                 autoCapitalize="none"
+                autoComplete="new-password"
+                contenedorStyle={styles.campo}
               />
               <Pressable
                 style={[styles.boton, guardando && styles.botonDeshabilitado]}
@@ -480,6 +492,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   valor: { color: '#374151', fontSize: 15, marginBottom: 8 },
+  campo: { marginBottom: 12 },
   input: {
     height: 48,
     borderWidth: 1,
