@@ -34,7 +34,7 @@ type EstiloVariante = {
 
 const ESTILOS_VARIANTE: Record<VarianteBoton, EstiloVariante> = {
   primario: { fondo: Colores.primario, texto: Colores.blanco },
-  secundario: { fondo: Colores.carbon, texto: Colores.blanco },
+  secundario: { fondo: Colores.secundario, texto: Colores.sobreSecundario },
   contorno: { fondo: Colores.blanco, texto: Colores.texto, borde: Colores.borde },
   texto: { fondo: Colores.transparente, texto: Colores.primario },
   peligro: { fondo: Colores.error, texto: Colores.blanco },

@@ -308,7 +308,7 @@ export default function GestionDetalleScreen() {
 
         {cargando ? (
           <View style={styles.cargando}>
-            <ActivityIndicator size="large" color="#07883F" />
+            <ActivityIndicator size="large" color="#087A35" />
             <Text style={styles.ayuda}>Preparando formulario...</Text>
           </View>
         ) : (
@@ -409,8 +409,8 @@ const styles = StyleSheet.create({
   contenido: { padding: 24, paddingTop: 65, paddingBottom: 40 },
   centro: { justifyContent: 'center', padding: 30 },
   volver: { marginBottom: 22 },
-  volverTexto: { color: '#07883F', fontSize: 15, fontWeight: '700' },
-  marca: { color: '#07883F', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
+  volverTexto: { color: '#087A35', fontSize: 15, fontWeight: '700' },
+  marca: { color: '#087A35', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
   titulo: { color: '#202936', fontSize: 27, fontWeight: '800', marginTop: 16 },
   descripcion: { color: '#687385', fontSize: 14, marginTop: 8, lineHeight: 20 },
   cargando: { alignItems: 'center', padding: 45 },
@@ -436,13 +436,13 @@ const styles = StyleSheet.create({
     marginRight: 7,
     marginBottom: 7,
   },
-  opcionSeleccionada: { borderColor: '#07883F', backgroundColor: '#E6F4EC' },
+  opcionSeleccionada: { borderColor: '#087A35', backgroundColor: '#E6F4EC' },
   textoOpcion: { color: '#374151', fontSize: 13 },
   textoOpcionSeleccionado: { color: '#065F33', fontWeight: '700' },
   sinOpciones: { color: '#B91C1C', fontSize: 13 },
   error: { color: '#DC2626', fontSize: 12, marginTop: 6 },
   boton: {
-    backgroundColor: '#07883F',
+    backgroundColor: '#087A35',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',

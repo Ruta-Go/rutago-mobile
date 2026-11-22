@@ -269,13 +269,13 @@ const styles = StyleSheet.create({
     marginBottom: 38,
   },
   marca: {
-    color: '#07883F',
+    color: '#087A35',
     fontSize: 25,
     fontWeight: '900',
     letterSpacing: 5,
   },
   acento: {
-    color: '#F5C400',
+    color: '#FFD900',
     marginTop: 8,
     marginBottom: 25,
   },
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   rol: {
-    color: '#07883F',
+    color: '#087A35',
     fontSize: 17,
     fontWeight: '700',
     marginTop: 8,
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   },
   advertencia: {
     backgroundColor: '#FFF4E5',
-    borderColor: '#F5C400',
+    borderColor: '#FFD900',
     borderWidth: 1,
     borderRadius: 12,
     padding: 14,
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     minWidth: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#F5C400',
+    backgroundColor: '#FFD900',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   flecha: {
-    color: '#07883F',
+    color: '#087A35',
     fontSize: 28,
     fontWeight: '700',
   },

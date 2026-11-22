@@ -108,7 +108,7 @@ export default function AceptarViajeScreen() {
               setRefrescando(true);
               void cargar();
             }}
-            colors={['#07883F']}
+            colors={['#087A35']}
           />
         }>
         <Pressable style={styles.volver} onPress={() => volverSeguro()}>
@@ -123,7 +123,7 @@ export default function AceptarViajeScreen() {
 
         {cargando ? (
           <View style={styles.estado}>
-            <ActivityIndicator size="large" color="#07883F" />
+            <ActivityIndicator size="large" color="#087A35" />
             <Text style={styles.estadoTexto}>Consultando viaje y flota...</Text>
           </View>
         ) : (
@@ -199,8 +199,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   contenido: { padding: 24, paddingTop: 65, paddingBottom: 40 },
   volver: { marginBottom: 22 },
-  volverTexto: { color: '#07883F', fontSize: 15, fontWeight: '700' },
-  marca: { color: '#07883F', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
+  volverTexto: { color: '#087A35', fontSize: 15, fontWeight: '700' },
+  marca: { color: '#087A35', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
   titulo: { color: '#202936', fontSize: 27, fontWeight: '800', marginTop: 16 },
   descripcion: { color: '#687385', fontSize: 14, marginTop: 8, lineHeight: 20 },
   estado: { alignItems: 'center', padding: 35 },
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     padding: 18,
     marginTop: 24,
   },
-  nombreRuta: { color: '#07883F', fontSize: 17, fontWeight: '800', marginBottom: 10 },
+  nombreRuta: { color: '#087A35', fontSize: 17, fontWeight: '800', marginBottom: 10 },
   dato: { color: '#374151', fontSize: 14, marginBottom: 7 },
   subtitulo: {
     color: '#202936',
@@ -228,13 +228,13 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 9,
   },
-  opcionSeleccionada: { borderColor: '#07883F', backgroundColor: '#E6F4EC' },
+  opcionSeleccionada: { borderColor: '#087A35', backgroundColor: '#E6F4EC' },
   opcionTitulo: { color: '#202936', fontSize: 15, fontWeight: '800' },
   opcionDetalle: { color: '#687385', fontSize: 13, marginTop: 4 },
   opcionTextoSeleccionado: { color: '#065F33' },
   vacio: { color: '#687385', fontSize: 14, lineHeight: 20 },
   boton: {
-    backgroundColor: '#07883F',
+    backgroundColor: '#087A35',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',

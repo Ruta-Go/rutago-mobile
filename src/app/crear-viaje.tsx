@@ -145,7 +145,7 @@ export default function CrearViajeScreen() {
 
         {cargando ? (
           <View style={styles.estado}>
-            <ActivityIndicator size="large" color="#07883F" />
+            <ActivityIndicator size="large" color="#087A35" />
             <Text style={styles.estadoTexto}>Consultando rutas...</Text>
           </View>
         ) : (
@@ -246,8 +246,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   contenido: { padding: 24, paddingTop: 65, paddingBottom: 40 },
   volver: { marginBottom: 22 },
-  volverTexto: { color: '#07883F', fontSize: 15, fontWeight: '700' },
-  marca: { color: '#07883F', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
+  volverTexto: { color: '#087A35', fontSize: 15, fontWeight: '700' },
+  marca: { color: '#087A35', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
   titulo: { color: '#202936', fontSize: 27, fontWeight: '800', marginTop: 16 },
   descripcion: { color: '#687385', fontSize: 14, marginTop: 8, lineHeight: 20 },
   estado: { alignItems: 'center', padding: 35 },
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 9,
   },
-  opcionSeleccionada: { borderColor: '#07883F', backgroundColor: '#E6F4EC' },
+  opcionSeleccionada: { borderColor: '#087A35', backgroundColor: '#E6F4EC' },
   opcionTexto: { color: '#374151', fontSize: 14 },
   opcionTextoSeleccionada: { color: '#065F33', fontWeight: '700' },
   input: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   resumenTitulo: { color: '#202936', fontWeight: '800', marginBottom: 8 },
   resumenTexto: { color: '#374151', fontSize: 14, marginBottom: 5 },
   boton: {
-    backgroundColor: '#07883F',
+    backgroundColor: '#087A35',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',

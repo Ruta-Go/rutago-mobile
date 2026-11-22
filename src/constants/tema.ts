@@ -1,12 +1,14 @@
 
+/** Identidad oficial RutaGo: verde #087A35, amarillo #FFD900 y blanco. */
 export const Colores = {
-  primario: '#07883F',
-  primarioPresionado: '#066C32',
-  primarioSuave: '#E8F5EC',
+  primario: '#087A35',
+  primarioPresionado: '#065F28',
+  primarioSuave: '#E7F4EC',
 
-  secundario: '#F5C400',
-  secundarioPresionado: '#D9AD00',
-  secundarioSuave: '#FFF8D9',
+  secundario: '#FFD900',
+  secundarioPresionado: '#E6C200',
+  secundarioSuave: '#FFF9CC',
+  sobreSecundario: '#1F2937',
 
   carbon: '#374151',
   carbonPresionado: '#1F2937',
@@ -21,15 +23,15 @@ export const Colores = {
   fondo: '#FFFFFF',
   fondoAlterno: '#FFFFFF',
 
-  exito: '#07883F',
+  exito: '#087A35',
   error: '#DC2626',
   errorSuave: '#FEE2E2',
 
-  advertencia: '#F5C400',
-  advertenciaSuave: '#FFF8D9',
+  advertencia: '#FFD900',
+  advertenciaSuave: '#FFF9CC',
 
-  info: '#07883F',
-  infoSuave: '#E8F5EC',
+  info: '#087A35',
+  infoSuave: '#E7F4EC',
 
   blanco: '#FFFFFF',
   negro: '#111827',
