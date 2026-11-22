@@ -92,7 +92,7 @@ npm test
 npx expo export --platform web --output-dir <ruta-temporal>
 ```
 
-Todos los comandos pasan sin errores: `npx tsc --noEmit` y `npm run lint` sin hallazgos; `npm test` ejecuta **54 pruebas en 11 suites** (cola offline, conexión, sesión, GPS, notificaciones, biometría y accesibilidad); `npx expo export --platform web` compila 14 bundles y genera **11 rutas estáticas** (antes 7), incluidas las cuatro nuevas. No se generan artefactos dentro del repositorio: la exportación se hace en una ruta temporal.
+Todos los comandos pasan sin errores: `npx tsc --noEmit` y `npm run lint` sin hallazgos; `npm test` ejecuta **54 pruebas en 11 suites** (cola offline, conexión, sesión, GPS, notificaciones, biometría y accesibilidad); `npx expo export --platform web` compila **21 bundles** y genera **19 rutas estáticas**. No se generan artefactos dentro del repositorio: la exportación se hace en una ruta temporal.
 
 `.github/workflows/ci.yml` repite `npm ci`, `npx tsc --noEmit`, `npm run lint`, `npm test` y la exportación del bundle web en pushes y PRs de `feature-ASEG1999`, `dev` y `main`. El build/submit con EAS queda pendiente de credenciales de Expo.
 
