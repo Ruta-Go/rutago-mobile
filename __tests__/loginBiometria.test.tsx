@@ -70,7 +70,7 @@ jest.mock('@/services/biometria', () => ({
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import HomeScreen from '@/app/index';
+import HomeScreen from '@/app/iniciar-sesion';
 import * as moduloAuth from '@/hooks/useAuth';
 import * as moduloBiometria from '@/services/biometria';
 import * as moduloUI from '@/components/ui';

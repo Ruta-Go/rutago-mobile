@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { ToastProvider } from '@/components/ui';
 import { ROLES } from '@/constants/roles';
+import { Colores } from '@/constants/tema';
 import { SesionProvider, useSesion } from '@/hooks/useSesion';
 import { escucharTapPush } from '@/services/notificaciones';
 
@@ -17,7 +18,7 @@ function Navegador() {
   if (cargando) {
     return (
       <View style={styles.cargando}>
-        <ActivityIndicator size="large" color="#07883F" />
+        <ActivityIndicator size="large" color={Colores.primario} />
       </View>
     );
   }
@@ -26,6 +27,7 @@ function Navegador() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!autenticado} redirectTo="/dashboard">
         <Stack.Screen name="index" />
+        <Stack.Screen name="iniciar-sesion" />
         <Stack.Screen name="registro" />
         <Stack.Screen name="recuperar-password" />
       </Stack.Protected>
@@ -79,6 +81,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colores.blanco,
   },
 });

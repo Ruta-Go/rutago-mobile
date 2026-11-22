@@ -1,3 +1,5 @@
+export type RolSeleccion = 'pasajero' | 'conductor';
+
 export const ROLES = {
   ADMINISTRADOR: 1,
   CONDUCTOR: 2,
@@ -24,4 +26,14 @@ export const ROLES_MOVILES = [
 
 export function esRolValido(rolId: number | string | null | undefined): boolean {
   return ROLES_MOVILES.includes(Number(rolId) as (typeof ROLES_MOVILES)[number]);
+}
+
+/** Convierte la selección visual en el rol numérico que espera el backend. */
+export function rolDesdeSeleccion(
+  valor: string | string[] | undefined,
+): number | undefined {
+  const texto = Array.isArray(valor) ? valor[0] : valor;
+  if (texto === 'pasajero') return ROLES.PASAJERO;
+  if (texto === 'conductor') return ROLES.CONDUCTOR;
+  return undefined;
 }
