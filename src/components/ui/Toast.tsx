@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 
 import { Colores, Espacios, Radios, Sombras, Tipografia } from '@/constants/tema';
+import { conContactoSiError } from '@/utils/mensajes';
 
 export type TipoToast = 'exito' | 'error' | 'advertencia' | 'info';
 
@@ -86,9 +87,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     (mensaje: string, opciones?: OpcionesToast) => {
       limpiarTemporizador();
       contador.current += 1;
+      const tipo = opciones?.tipo ?? 'info';
       setToast({
-        mensaje,
-        tipo: opciones?.tipo ?? 'info',
+        mensaje: conContactoSiError(mensaje, tipo),
+        tipo,
         duracion: opciones?.duracion ?? 3000,
         clave: contador.current,
       });

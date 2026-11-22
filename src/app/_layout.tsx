@@ -74,13 +74,24 @@ export default function RootLayout() {
     <ToastProvider>
       <SesionProvider>
         <StatusBar style="dark" />
-        <Navegador />
+        <View style={styles.contenedorAplicacion}>
+          <View style={styles.franjaIdentidad} />
+          <Navegador />
+        </View>
       </SesionProvider>
     </ToastProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  contenedorAplicacion: {
+    flex: 1,
+    backgroundColor: Colores.blanco,
+  },
+  franjaIdentidad: {
+    height: 4,
+    backgroundColor: Colores.secundario,
+  },
   cargando: {
     flex: 1,
     alignItems: 'center',
