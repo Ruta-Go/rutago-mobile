@@ -158,5 +158,7 @@ git push origin feature-ASEG1999
 | Reinicio de Metro con caché limpia | Terminado | `docs/EXPO_GO_DIAGNOSTICO.md` | `npx expo start --clear --port 19006` | HTTP 200 y bundle reconstruido; proceso detenido | `5dcb5be`, PR `#27` mergeado |
 | Pruebas de registro y recuperación de contraseña | Terminado | `__tests__/authService.test.ts` | jest, tsc, lint | 14 suites / 70 pruebas OK | `52e0981`, PR `#28` mergeado |
 | Matriz funcional móvil | Terminado | `docs/QA_FUNCIONAL_MOVIL.md` | Revisión de evidencias de hoy | Checklist cubierto con estados y limitaciones explícitas | `245e889`, PR `#29` mergeado |
+| Lint determinista | Terminado | `package.json` | jest, tsc, lint, export web | `npm run lint` sin caché; 14 suites/70 pruebas OK | `ab71825`, PR `#31` mergeado |
+| Inventario de bloqueos externos | Terminado | `docs/BLOQUEOS_EXTERNOS.md` | Revisión de dependencias externas | Documentados SSH, Expo, push, correo, JWT, dominio, PostGIS, Trello y tiendas | `c542f73`, PR `#32` mergeado |
 | CI backend | Parcialmente realizado | - | Workflows `CI Backend RutaGo` y `Deploy Backend RutaGo` | CI verde en run `45083225867`; Deploy falla por secretos SSH ausentes, fallo preexistente | - |
 | Verificación física en Expo Go | Bloqueado | - | - | Sin iPhone/emulador en este entorno | - |
