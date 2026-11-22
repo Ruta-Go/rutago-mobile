@@ -29,6 +29,13 @@ Cierre integral de RutaGo **sin reconstruir** el proyecto: se auditaron los tres
 | Sprint 8 · Notificaciones del SO | `rutago-mobile` | Permisos, token de Expo desde `app.json` y avisos locales de eventos reales | `4311069`, `14bde93` | Sí |
 | Sprint 8 · Offline | `rutago-mobile` | Caché cifrada de viajes y notificaciones con fallback real sin red | `702acc7` | Sí |
 | Sprint 8 · GPS en segundo plano | `rutago-mobile` | Tarea del sistema, permisos y envío real de coordenadas con la app en segundo plano | `db13257` | Sí |
+| Sprint 9 / Backend Render | `rutago-backend` | PR #36: `/api/health/db` y `/api/rutas/por-paradas`, diagnóstico sin secretos | `75cf9d9` | Sí |
+| Sprint 9 / Identidad visual | `rutago-mobile` | Paleta verde `#087A35`, amarillo `#FFD900` y blanco `#FFFFFF` | `bbd6023` | Sí |
+| Sprint 9 / Foto verificada | `rutago-mobile` | Universidad del Pacífico desde Wikimedia Commons, CC BY-SA 4.0 | `4ed9991` | Sí |
+| Sprint 9 / Bienvenida | `rutago-mobile` | Nueva pantalla de bienvenida, selección de roles y ruta `/iniciar-sesion` | `c2fe9d1` | Sí |
+| Sprint 9 / Validación de rol | `rutago-mobile` | El backend valida el rol real antes de guardar la sesión | `5f6c900` | Sí |
+| Sprint 9 / Búsqueda por barrio | `rutago-mobile` | Selectores reales de barrios y Universidad del Pacífico | `6082736` | Sí |
+| Sprint 10 / Sincronización offline | `rutago-mobile` | PR #17 de `feature/offline-sync`: cola cifrada, detección de red y reenvío automático | `9b40ffb` | Sí |
 
 ## Verificación ejecutada
 
@@ -49,13 +56,6 @@ Cierre integral de RutaGo **sin reconstruir** el proyecto: se auditaron los tres
 
 No se generaron artefactos versionados (`dist`, `web-build`, `.expo-export`) dentro de los repositorios.
 
-| Sprint 9 / Backend Render | `rutago-backend` | PR #36: `/api/health/db` y `/api/rutas/por-paradas`, diagnóstico sin secretos | `75cf9d9` | Sí |
-| Sprint 9 / Identidad visual | `rutago-mobile` | Paleta verde `#087A35`, amarillo `#FFD900` y blanco `#FFFFFF` | `bbd6023` | Sí |
-| Sprint 9 / Foto verificada | `rutago-mobile` | Universidad del Pacífico desde Wikimedia Commons, CC BY-SA 4.0 | `4ed9991` | Sí |
-| Sprint 9 / Bienvenida | `rutago-mobile` | Nueva pantalla de bienvenida, selección de roles y ruta `/iniciar-sesion` | `c2fe9d1` | Sí |
-| Sprint 9 / Validación de rol | `rutago-mobile` | El backend valida el rol real antes de guardar la sesión | `5f6c900` | Sí |
-| Sprint 9 / Búsqueda por barrio | `rutago-mobile` | Selectores reales de barrios y Universidad del Pacífico | `6082736` | Sí |
-
 ## Verificación del cierre móvil (Sprint 9)
 
 - `npm test -- --runInBand`: 10 suites, 41 pruebas, sin fallos.
@@ -63,7 +63,16 @@ No se generaron artefactos versionados (`dist`, `web-build`, `.expo-export`) den
 - `npx tsc --noEmit`: sin errores de tipos.
 - `npx expo export --platform web --output-dir .expo-export`: 22 bundles web y 20 rutas estáticas. El export se ejecutó desde una copia limpia fuera de OneDrive porque los puntos de reparse de `node_modules` en la ruta sincronizada producen `EINVAL readlink` en Metro; el código verificado es idéntico al de esta rama.
 
-## Decisiones técnicas
+## Integración de ramas y bloqueos
+
+- `feature-ASEG1999` se integró en `main` mediante PR #16; CI verde (tipos, lint, pruebas y export web).
+- `feature/offline-sync` se integró en `main` mediante PR #17; merge temporal verificado con 12 suites/59 pruebas, lint, tipos y export web.
+- `chore/sdk-58`, `feacture-Stefany`, `dev` y `feacture-ESQ` ya eran antecedentes de `main`: no había trabajo pendiente que integrar.
+- En el backend, todas las ramas remotas salvo `FEATURE-ASEG` ya estaban incluidas en `main`; `FEATURE-ASEG` no produce diferencias de contenido frente a `main`.
+- Deploy de Render: el workflow `45056075852` falló en la verificación SSH y `/api/health/db` todavía responde 404. Se requiere acceso a Render/SSH para corregirlo; no se cargaron usuarios de prueba ni se cambiaron credenciales.
+- Trello: no hay variables de entorno `TRELLO*` ni acceso verificado, así que los tableros no pudieron actualizarse.
+
+## Decisiones
 
 1. **Roles válidos en el móvil:** `Administrador` (1), `Conductor` (2), `Pasajero` (3). `Entidad Externa` existe en el backend pero queda fuera del alcance de la app móvil. El backend verifica siempre; el cliente nunca decide el rol en registro ni puede escalar.
 2. **Contrato de respuesta:** las listas y detalles usan `{ success, data, message? }`. El móvil hace `unwrap` con `extraerDatos` / `extraerLista`.
