@@ -59,6 +59,7 @@
     "ios:tunnel": "expo start --ios --tunnel",
     "web": "expo start --web",
     "check:api": "node ./scripts/verificar-api.js",
+    "check:entorno": "node ./scripts/verificar-entorno.js",
     "lint": "expo lint",
     "test": "jest --runInBand"
   },
