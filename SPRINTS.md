@@ -69,7 +69,7 @@ No se generaron artefactos versionados (`dist`, `web-build`, `.expo-export`) den
 - `feature/offline-sync` se integró en `main` mediante PR #17; merge temporal verificado con 12 suites/59 pruebas, lint, tipos y export web.
 - `chore/sdk-58`, `feacture-Stefany`, `dev` y `feacture-ESQ` ya eran antecedentes de `main`: no había trabajo pendiente que integrar.
 - En el backend, todas las ramas remotas salvo `FEATURE-ASEG` ya estaban incluidas en `main`; `FEATURE-ASEG` no produce diferencias de contenido frente a `main`.
-- Deploy de Render: el workflow `45056075852` falló en la verificación SSH y `/api/health/db` todavía responde 404. Se requiere acceso a Render/SSH para corregirlo; no se cargaron usuarios de prueba ni se cambiaron credenciales.
+- Deploy de Render: el auto-deploy desde GitHub sí incorporó el PR #36. `/api/health/db` responde 200 con tablas `Usuarios`/`Rutas` y 1 usuario; el login con correo inexistente devuelve 401 y ya no 500. El workflow SSH al VPS sigue fallido y requiere acceso a sus secretos.
 - Trello: no hay variables de entorno `TRELLO*` ni acceso verificado, así que los tableros no pudieron actualizarse.
 
 ## Decisiones
@@ -101,6 +101,7 @@ No se generaron artefactos versionados (`dist`, `web-build`, `.expo-export`) den
 5. **EAS build/submit** cuando se disponga de cuenta Expo; ejecutar antes `npx eas-cli init`.
 6. **Ejecutar** `npx eas-cli init` **y configurar la cuenta Expo** antes de usar `eas.json`.
 7. **Configurar el proveedor de push remoto** y registrar los tokens obtenidos en el backend; hoy el móvil solicita permisos, obtiene el token y muestra notificaciones locales, pero no existe un canal de envío externo.
+8. **Autorizar una cuenta de demostración**: la base de Render solo tiene 1 usuario real; no se cargaron usuarios de prueba ni se cambiaron contraseñas.
 
 ## Comandos de push
 
