@@ -18,11 +18,15 @@ jest.mock('@/services/biometria', () => ({
 import * as moduloApi from '@/services/api';
 import * as moduloBiometria from '@/services/biometria';
 import {
+  cambiarContrasenaConToken,
   canUseBiometrics,
   getUser,
   iniciarSesion,
   iniciarSesionBiometrica,
   logout,
+  registrarUsuario,
+  solicitarRecuperacion,
+  verificarTokenRecuperacion,
 } from '@/services/authService';
 
 const api = moduloApi.api as unknown as { get: jest.Mock; post: jest.Mock };
@@ -177,5 +181,89 @@ describe('authService', () => {
       'Inicia sesión con contraseña una vez para habilitar el ingreso biométrico.',
     );
     expect(intercambiarRefreshToken).not.toHaveBeenCalled();
+  });
+
+  it('registra un pasajero enviando el payload saneado al backend', async () => {
+    api.post.mockResolvedValue({
+      data: { success: true, message: 'Usuario registrado correctamente.' },
+    });
+
+    const respuesta = await registrarUsuario({
+      nombres: '  Ana ',
+      apellidos: ' López ',
+      correo: ' ana@correo.com ',
+      contrasena: 'clave123',
+      telefono: '  3001234567 ',
+      direccion: '  ',
+      tipoDocumentoId: 1,
+      numeroDocumento: '  123 ',
+      fechaNacimiento: ' 2000-01-01 ',
+    });
+
+    expect(api.post).toHaveBeenCalledWith('/usuarios/registro', {
+      nombres: 'Ana',
+      apellidos: 'López',
+      correo: 'ana@correo.com',
+      contrasena: 'clave123',
+      telefono: '3001234567',
+      tipoDocumentoId: 1,
+      numeroDocumento: '123',
+      fechaNacimiento: '2000-01-01',
+    });
+    expect(respuesta.mensaje).toBe('Usuario registrado correctamente.');
+  });
+
+  it('propaga el mensaje del backend cuando el registro falla', async () => {
+    api.post.mockResolvedValue({
+      data: { success: false, message: 'El correo ya está registrado.' },
+    });
+
+    await expect(
+      registrarUsuario({
+        nombres: 'Ana',
+        apellidos: 'López',
+        correo: 'ana@correo.com',
+        contrasena: 'clave123',
+      }),
+    ).rejects.toThrow('El correo ya está registrado.');
+  });
+
+  it('solicita la recuperación de contraseña al endpoint real', async () => {
+    api.post.mockResolvedValue({
+      data: { success: true, message: 'Revisa tu correo para continuar.' },
+    });
+
+    await expect(
+      solicitarRecuperacion('  ana@correo.com '),
+    ).resolves.toBe('Revisa tu correo para continuar.');
+    expect(api.post).toHaveBeenCalledWith('/usuarios/recuperar-contrasena', {
+      correo: 'ana@correo.com',
+    });
+  });
+
+  it('rechaza un enlace de recuperación inválido', async () => {
+    api.post.mockResolvedValue({
+      data: { success: false, message: 'El enlace no es válido o ya expiró.' },
+    });
+
+    await expect(verificarTokenRecuperacion('token-viejo')).rejects.toThrow(
+      'El enlace no es válido o ya expiró.',
+    );
+    expect(api.post).toHaveBeenCalledWith(
+      '/usuarios/verificar-token-recuperacion',
+      { token: 'token-viejo' },
+    );
+  });
+
+  it('cambia la contraseña con el token de recuperación', async () => {
+    api.post.mockResolvedValue({
+      data: { success: true, message: 'Contraseña actualizada.' },
+    });
+
+    await cambiarContrasenaConToken('token-valido', 'nuevaClave123');
+    expect(api.post).toHaveBeenCalledWith('/usuarios/cambiar-contrasena', {
+      token: 'token-valido',
+      nuevaContrasena: 'nuevaClave123',
+    });
   });
 });
