@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   Pressable,
   View,
 } from 'react-native';
@@ -30,11 +29,17 @@ type Ruta = {
   costo?: number | null;
   horarios?: string[] | null;
   distanciaMetros?: number;
+  paradas?: string[];
 };
 
+const UNIVERSIDAD = 'Universidad del Pacífico';
+
+type BarrioCatalogo = { id: number; nombre: string; comuna?: { nombre?: string } };
+
 export default function BuscarViajesScreen() {
-  const [origen, setOrigen] = useState('');
+  const [origen, setOrigen] = useState(UNIVERSIDAD);
   const [destino, setDestino] = useState('');
+  const [barrios, setBarrios] = useState<BarrioCatalogo[]>([]);
   const [resultados, setResultados] = useState<Ruta[]>([]);
   const [cargando, setCargando] = useState(false);
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
@@ -44,12 +49,28 @@ export default function BuscarViajesScreen() {
   } | null>(null);
   const [motorGeo, setMotorGeo] = useState<string | null>(null);
 
-  const normalizarTexto = (texto: string) =>
-    texto
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim()
-      .toLowerCase();
+  /** Catálogo real del backend: barrios de Buenaventura con su comuna. */
+  useEffect(() => {
+    let activo = true;
+    const cargar = async () => {
+      try {
+        const respuesta = await api.get<unknown>('/barrios', {
+          params: { paginaActual: 1, registrosPorPagina: 200 },
+        });
+        if (activo) setBarrios(extraerLista<BarrioCatalogo>(respuesta.data));
+      } catch (error) {
+        console.error('No se pudo cargar el catálogo de barrios:', error);
+      }
+    };
+    void cargar();
+    return () => {
+      activo = false;
+    };
+  }, []);
+
+  const opciones = [UNIVERSIDAD, ...barrios.map((barrio) => barrio.nombre)].filter(
+    (nombre, indice, lista) => lista.indexOf(nombre) === indice,
+  );
 
   const buscarViajes = async () => {
     if (!origen.trim() || !destino.trim()) {
@@ -62,17 +83,11 @@ export default function BuscarViajesScreen() {
       setBusquedaRealizada(false);
       setResultados([]);
 
-      const respuesta = await api.get<unknown>(
-        `/rutas/destino/${encodeURIComponent(destino.trim())}`,
-      );
-      const rutas = extraerLista<Ruta>(respuesta.data);
-      const origenBuscado = normalizarTexto(origen);
+      const respuesta = await api.get<unknown>('/rutas/por-paradas', {
+        params: { origen: origen.trim(), destino: destino.trim() },
+      });
 
-      const rutasFiltradas = rutas.filter((ruta) =>
-        normalizarTexto(ruta.origen?.nombre ?? '').includes(origenBuscado),
-      );
-
-      setResultados(rutasFiltradas);
+      setResultados(extraerLista<Ruta>(respuesta.data));
       setBusquedaRealizada(true);
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) {
@@ -171,25 +186,55 @@ export default function BuscarViajesScreen() {
         </Text>
 
         <View style={styles.tarjeta}>
-          <Text style={styles.etiqueta}>Ciudad de origen</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="¿Desde dónde sales?"
-            placeholderTextColor="#9CA3AF"
-            value={origen}
-            onChangeText={setOrigen}
-            autoCapitalize="words"
-          />
+          <Text style={styles.etiqueta}>Barrio o punto de origen</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.selector}>
+            {opciones.map((nombre) => (
+              <Pressable
+                key={`origen-${nombre}`}
+                testID={`origen-${nombre}`}
+                onPress={() => setOrigen(nombre)}
+                style={[
+                  styles.opcion,
+                  origen === nombre && styles.opcionSeleccionada,
+                ]}>
+                <Text
+                  style={[
+                    styles.opcionTexto,
+                    origen === nombre && styles.opcionTextoSeleccionado,
+                  ]}>
+                  {nombre}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
 
-          <Text style={styles.etiqueta}>Ciudad de destino</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="¿Hacia dónde vas?"
-            placeholderTextColor="#9CA3AF"
-            value={destino}
-            onChangeText={setDestino}
-            autoCapitalize="words"
-          />
+          <Text style={styles.etiqueta}>Barrio, Universidad o destino</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.selector}>
+            {opciones.map((nombre) => (
+              <Pressable
+                key={`destino-${nombre}`}
+                testID={`destino-${nombre}`}
+                onPress={() => setDestino(nombre)}
+                style={[
+                  styles.opcion,
+                  destino === nombre && styles.opcionSeleccionada,
+                ]}>
+                <Text
+                  style={[
+                    styles.opcionTexto,
+                    destino === nombre && styles.opcionTextoSeleccionado,
+                  ]}>
+                  {nombre}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
 
           <Pressable
             style={({ pressed }) => [
@@ -240,7 +285,7 @@ export default function BuscarViajesScreen() {
 
         {cargando && (
           <View style={styles.estado}>
-            <ActivityIndicator size="large" color="#07883F" />
+            <ActivityIndicator size="large" color="#087A35" />
             <Text style={styles.estadoTexto}>
               Consultando rutas disponibles...
             </Text>
@@ -254,7 +299,7 @@ export default function BuscarViajesScreen() {
             <Text style={styles.vacioTexto}>
               {ubicacion
                 ? 'No hay rutas registradas dentro de 15 km de tu ubicación real.'
-                : `No hay recorridos registrados desde ${origen} hasta ${destino}. Intenta con otras ciudades.`}
+                : `No hay recorridos configurados entre ${origen} y ${destino}. Prueba con otro barrio o con la Universidad del Pacífico.`}
             </Text>
           </View>
         )}
@@ -272,6 +317,11 @@ export default function BuscarViajesScreen() {
               <Text style={styles.dato}>
                 Destino: {ruta.destino?.nombre ?? 'No disponible'}
               </Text>
+              {ruta.paradas && ruta.paradas.length > 0 ? (
+                <Text style={styles.dato}>
+                  Paradas: {ruta.paradas.join(' · ')}
+                </Text>
+              ) : null}
 
               {!!ruta.descripcion && (
                 <Text style={styles.dato}>Descripción: {ruta.descripcion}</Text>
@@ -343,12 +393,12 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   volverTexto: {
-    color: '#07883F',
+    color: '#087A35',
     fontSize: 14,
     fontWeight: '700',
   },
   marca: {
-    color: '#07883F',
+    color: '#087A35',
     fontSize: 22,
     fontWeight: '900',
     letterSpacing: 4,
@@ -377,25 +427,40 @@ const styles = StyleSheet.create({
     marginBottom: 9,
     marginTop: 8,
   },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 10,
+  selector: {
+    marginBottom: 12,
+  },
+  opcion: {
     paddingHorizontal: 14,
-    color: '#202936',
-    marginBottom: 17,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#087A35',
+    backgroundColor: '#FFFFFF',
+    marginRight: 8,
+  },
+  opcionSeleccionada: {
+    backgroundColor: '#FFD900',
+    borderColor: '#E6C200',
+  },
+  opcionTexto: {
+    color: '#1F2937',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  opcionTextoSeleccionado: {
+    color: '#111827',
   },
   boton: {
     height: 50,
-    backgroundColor: '#07883F',
+    backgroundColor: '#087A35',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
   },
   botonPresionado: {
-    backgroundColor: '#066C32',
+    backgroundColor: '#065F28',
   },
   botonDeshabilitado: {
     opacity: 0.7,
@@ -408,8 +473,8 @@ const styles = StyleSheet.create({
   botonSecundario: {
     height: 46,
     borderWidth: 1,
-    borderColor: '#F5C400',
-    backgroundColor: '#FFF8D9',
+    borderColor: '#FFD900',
+    backgroundColor: '#FFF9CC',
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -446,7 +511,7 @@ const styles = StyleSheet.create({
     fontSize: 38,
   },
   vacioTitulo: {
-    color: '#07883F',
+    color: '#087A35',
     fontWeight: '800',
     fontSize: 16,
     marginTop: 12,
@@ -467,7 +532,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   nombreRuta: {
-    color: '#07883F',
+    color: '#087A35',
     fontSize: 18,
     fontWeight: '800',
     marginBottom: 12,

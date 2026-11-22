@@ -134,6 +134,7 @@ export async function registrarUsuario(
 export async function iniciarSesion(
   correo: string,
   contrasena: string,
+  rolEsperado?: number,
 ): Promise<LoginResponse> {
   try {
     const { data } = await api.post<LoginResponse>('/auth/login', {
@@ -146,6 +147,13 @@ export async function iniciarSesion(
     }
 
     const usuario = validarUsuarioMovil(data.usuario);
+
+    // La selección de la bienvenida nunca otorga permisos: si el rol real del
+    // backend es distinto, se aborta antes de guardar la sesión.
+    if (rolEsperado !== undefined && Number(usuario.rolId) !== rolEsperado) {
+      throw new Error('Tu cuenta no corresponde al rol seleccionado.');
+    }
+
     await guardarSesion(data.token, data.refreshToken, usuario);
     return { ...data, usuario };
   } catch (error) {

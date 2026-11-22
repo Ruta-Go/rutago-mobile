@@ -347,7 +347,7 @@ export default function ReportarUbicacionScreen() {
           </View>
         ) : cargando ? (
           <View style={styles.estado}>
-            <ActivityIndicator size="large" color="#07883F" />
+            <ActivityIndicator size="large" color="#087A35" />
             <Text style={styles.estadoTexto}>Consultando viajes activos...</Text>
           </View>
         ) : viajes.length === 0 ? (
@@ -439,8 +439,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   contenido: { padding: 24, paddingTop: 65, paddingBottom: 40 },
   volver: { marginBottom: 22 },
-  volverTexto: { color: '#07883F', fontSize: 15, fontWeight: '700' },
-  marca: { color: '#07883F', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
+  volverTexto: { color: '#087A35', fontSize: 15, fontWeight: '700' },
+  marca: { color: '#087A35', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
   titulo: { color: '#202936', fontSize: 27, fontWeight: '800', marginTop: 16 },
   descripcion: { color: '#687385', fontSize: 14, marginTop: 8, lineHeight: 20 },
   estado: { alignItems: 'center', padding: 35 },
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   icono: { fontSize: 38 },
-  vacioTitulo: { color: '#07883F', fontWeight: '800', fontSize: 16, marginTop: 12 },
+  vacioTitulo: { color: '#087A35', fontWeight: '800', fontSize: 16, marginTop: 12 },
   vacioTexto: {
     color: '#687385',
     textAlign: 'center',
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 9,
   },
-  opcionSeleccionada: { borderColor: '#07883F', backgroundColor: '#E6F4EC' },
+  opcionSeleccionada: { borderColor: '#087A35', backgroundColor: '#E6F4EC' },
   opcionTitulo: { color: '#202936', fontSize: 15, fontWeight: '800' },
   opcionDetalle: { color: '#687385', fontSize: 13, marginTop: 4 },
   tarjeta: {
@@ -491,10 +491,10 @@ const styles = StyleSheet.create({
     padding: 18,
     marginTop: 18,
   },
-  resumenTitulo: { color: '#07883F', fontWeight: '800', marginBottom: 10 },
+  resumenTitulo: { color: '#087A35', fontWeight: '800', marginBottom: 10 },
   dato: { color: '#374151', fontSize: 14, marginBottom: 7 },
   boton: {
-    backgroundColor: '#07883F',
+    backgroundColor: '#087A35',
     borderRadius: 10,
     paddingVertical: 13,
     alignItems: 'center',
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   },
   botonSecundario: {
     borderWidth: 1,
-    borderColor: '#07883F',
+    borderColor: '#087A35',
     borderRadius: 10,
     paddingVertical: 13,
     alignItems: 'center',
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   },
   botonDeshabilitado: { opacity: 0.7 },
   textoBoton: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  textoBotonSecundario: { color: '#07883F', fontSize: 15, fontWeight: '700' },
+  textoBotonSecundario: { color: '#087A35', fontSize: 15, fontWeight: '700' },
   botonMapa: { alignSelf: 'flex-start', marginTop: 10 },
-  textoBotonMapa: { color: '#07883F', fontSize: 13, fontWeight: '700' },
+  textoBotonMapa: { color: '#087A35', fontSize: 13, fontWeight: '700' },
 });

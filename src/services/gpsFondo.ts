@@ -90,7 +90,7 @@ export async function iniciarGpsFondo(
     foregroundService: {
       notificationTitle: 'RutaGo reportando ubicación',
       notificationBody: 'Tu viaje está enviando la posición del vehículo.',
-      notificationColor: '#07883F',
+      notificationColor: '#087A35',
     },
   });
   return true;

@@ -260,7 +260,7 @@ export default function MiPerfilScreen() {
 
         {cargando ? (
           <View style={styles.estado}>
-            <ActivityIndicator size="large" color="#07883F" />
+            <ActivityIndicator size="large" color="#087A35" />
             <Text style={styles.estadoTexto}>Consultando tu perfil...</Text>
           </View>
         ) : (
@@ -493,8 +493,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   contenido: { padding: 24, paddingTop: 65 },
   volver: { marginBottom: 22 },
-  volverTexto: { color: '#07883F', fontSize: 15, fontWeight: '700' },
-  marca: { color: '#07883F', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
+  volverTexto: { color: '#087A35', fontSize: 15, fontWeight: '700' },
+  marca: { color: '#087A35', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
   titulo: { color: '#202936', fontSize: 27, fontWeight: '800', marginTop: 16 },
   descripcion: { color: '#687385', fontSize: 14, marginTop: 8, lineHeight: 20 },
   estado: { alignItems: 'center', padding: 35 },
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   boton: {
-    backgroundColor: '#07883F',
+    backgroundColor: '#087A35',
     borderRadius: 10,
     paddingVertical: 13,
     alignItems: 'center',
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   opcionEstadoSeleccionada: {
-    borderColor: '#07883F',
+    borderColor: '#087A35',
     backgroundColor: '#E6F4EC',
   },
   textoOpcionEstado: { color: '#374151', fontSize: 14, fontWeight: '600' },

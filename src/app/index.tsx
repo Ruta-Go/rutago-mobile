@@ -1,322 +1,335 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import {
-  KeyboardAvoidingView,
-  Platform,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, Card, Input, useToast } from '@/components/ui';
 import { Colores, Espacios, Radios, Tipografia } from '@/constants/tema';
-import { useAuth } from '@/hooks/useAuth';
-import {
-  obtenerEstadoBiometria,
-  type EstadoBiometria,
-} from '@/services/biometria';
-import { esCorreoValido } from '@/utils/validacion';
+import type { RolSeleccion } from '@/constants/roles';
 
-export default function HomeScreen() {
-  const parametros = useLocalSearchParams<{ correo?: string }>();
-  const { iniciarSesion, iniciarSesionBiometrica } = useAuth();
-  const [correo, setCorreo] = useState(
-    typeof parametros.correo === 'string' ? parametros.correo : '',
-  );
-  const [contrasena, setContrasena] = useState('');
-  const [cargando, setCargando] = useState(false);
-  const [cargandoBiometria, setCargandoBiometria] = useState(false);
-  const [biometria, setBiometria] = useState<EstadoBiometria>({
-    disponible: false,
-    tipo: 'ninguna',
-    etiqueta: '',
-  });
-  const [errorCorreo, setErrorCorreo] = useState<string | undefined>();
-  const [errorContrasena, setErrorContrasena] = useState<string | undefined>();
-  const { mostrar } = useToast();
+const OPCIONES: {
+  clave: RolSeleccion;
+  etiqueta: string;
+  descripcion: string;
+  icono: string;
+}[] = [
+  {
+    clave: 'pasajero',
+    etiqueta: 'Pasajero',
+    descripcion: 'Busca y toma tu viaje',
+    icono: 'account-outline',
+  },
+  {
+    clave: 'conductor',
+    etiqueta: 'Conductor',
+    descripcion: 'Conduce y reporta tu ruta',
+    icono: 'steering',
+  },
+];
 
-  /** Consulté el hardware real para mostrar el acceso biométrico sólo cuando existe. */
-  useEffect(() => {
-    let activo = true;
-    void obtenerEstadoBiometria().then((estado) => {
-      if (activo) setBiometria(estado);
-    });
-    return () => {
-      activo = false;
-    };
-  }, []);
+/**
+ * Pantalla de bienvenida. La selección es sólo una pista visual: el backend
+ * sigue siendo la fuente de verdad y valida el rol real al iniciar sesión.
+ */
+export default function PantallaBienvenida() {
+  const [seleccion, setSeleccion] = useState<RolSeleccion | null>(null);
 
-  const manejarInicioSesion = async () => {
-    if (cargando) return;
-
-    setErrorCorreo(undefined);
-    setErrorContrasena(undefined);
-
-    let valido = true;
-
-    if (!correo.trim()) {
-      setErrorCorreo('Ingresa tu correo electrónico');
-      valido = false;
-    } else if (!esCorreoValido(correo)) {
-      setErrorCorreo('Ingresa un correo electrónico válido');
-      valido = false;
-    }
-
-    if (!contrasena) {
-      setErrorContrasena('Ingresa tu contraseña');
-      valido = false;
-    }
-
-    if (!valido) return;
-
-    try {
-      setCargando(true);
-
-      await iniciarSesion(correo.trim(), contrasena);
-
-      mostrar('Sesión iniciada correctamente', { tipo: 'exito' });
-      router.replace('/dashboard');
-    } catch (error) {
-      mostrar(
-        error instanceof Error
-          ? error.message
-          : 'No fue posible conectar con el servidor',
-        { tipo: 'error' },
-      );
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  /** Conecté el botón biométrico con la reanudación real de sesión del backend. */
-  const manejarBiometria = async () => {
-    if (cargandoBiometria || cargando) return;
-    setCargandoBiometria(true);
-    try {
-      await iniciarSesionBiometrica();
-      mostrar('Sesión iniciada con biometría', { tipo: 'exito' });
-      router.replace('/dashboard');
-    } catch (error) {
-      mostrar(
-        error instanceof Error
-          ? error.message
-          : 'No se pudo iniciar sesión con biometría',
-        { tipo: 'error' },
-      );
-    } finally {
-      setCargandoBiometria(false);
-    }
+  const continuar = () => {
+    if (!seleccion) return;
+    router.push(
+      `/iniciar-sesion?rol=${seleccion}` as Parameters<typeof router.push>[0],
+    );
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <SafeAreaView style={styles.seguro}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
+        contentContainerStyle={styles.contenido}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.identidad}>
           <View style={styles.logo}>
-            <Text style={styles.logoTexto}>R</Text>
+            <MaterialCommunityIcons
+              name="bus-side"
+              size={26}
+              color={Colores.blanco}
+            />
           </View>
-
-          <Text style={styles.marca}>RUTA GO</Text>
-          <Text style={styles.lema}>Tu camino, más fácil</Text>
+          <View>
+            <Text style={styles.marca}>RutaGo</Text>
+            <Text style={styles.marcaSecundaria}>Transporte</Text>
+          </View>
         </View>
 
-        <Card style={styles.tarjeta}>
-          <Text style={styles.titulo}>¡Bienvenido!</Text>
-          <Text style={styles.subtitulo}>
-            Ingresa a tu cuenta para continuar
-          </Text>
-
-          <Input
-            etiqueta="Correo electrónico"
-            requerido
-            placeholder="tucorreo@ejemplo.com"
-            value={correo}
-            onChangeText={setCorreo}
-            error={errorCorreo}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="email"
-            contenedorStyle={styles.campo}
+        <View style={styles.fotoContenedor}>
+          <Image
+            source={require('../../assets/images/unipacifico-buenaventura.jpg')}
+            style={styles.foto}
+            resizeMode="cover"
+            accessible
+            accessibilityLabel="Entrada principal de la Universidad del Pacífico en Buenaventura"
           />
-
-          <Input
-            etiqueta="Contraseña"
-            requerido
-            placeholder="Ingresa tu contraseña"
-            value={contrasena}
-            onChangeText={setContrasena}
-            error={errorContrasena}
-            esContrasena
-            autoCapitalize="none"
-            autoComplete="current-password"
-            contenedorStyle={styles.campo}
-          />
-
-          <Pressable
-            style={styles.olvido}
-            onPress={() => router.push('/recuperar-password')}>
-            <Text style={styles.olvidoTexto}>¿Olvidaste tu contraseña?</Text>
-          </Pressable>
-
-          <Button
-            titulo="Iniciar sesión"
-            variante="primario"
-            cargando={cargando}
-            onPress={manejarInicioSesion}
-          />
-
-          {biometria.disponible ? (
-            <Pressable
-              testID="boton-biometria"
-              style={styles.biometria}
-              disabled={cargandoBiometria || cargando}
-              onPress={manejarBiometria}>
-              <MaterialCommunityIcons
-                name={
-                  biometria.tipo === 'faceid'
-                    ? 'face-recognition'
-                    : 'fingerprint'
-                }
-                size={22}
-                color={Colores.primario}
-              />
-              <Text style={styles.biometriaTexto}>
-                {cargandoBiometria
-                  ? 'Verificando identidad...'
-                  : `Entrar con ${biometria.etiqueta}`}
-              </Text>
-            </Pressable>
-          ) : null}
-
-          <View style={styles.registro}>
-            <Text style={styles.registroEtiqueta}>¿No tienes una cuenta? </Text>
-
-            <Pressable
-              onPress={() =>
-                router.push('/registro' as Parameters<typeof router.push>[0])
-              }>
-              <Text style={styles.registroEnlace}>Regístrate</Text>
-            </Pressable>
+          <View style={styles.fotoEtiqueta}>
+            <Text style={styles.fotoTitulo}>Universidad del Pacífico</Text>
+            <Text style={styles.fotoTexto}>Buenaventura · Colombia</Text>
           </View>
-        </Card>
+        </View>
 
-        <Text style={styles.pie}>RUTA GO · Movilidad para todos</Text>
+        <Text style={styles.credito}>
+          Foto: Albert Torres Bonilla / Wikimedia Commons · CC BY-SA 4.0
+        </Text>
+
+        <Text style={styles.titulo}>Selecciona tu rol</Text>
+        <Text style={styles.subtitulo}>
+          Elige cómo quieres usar RutaGo. Tu cuenta real se validará al entrar.
+        </Text>
+
+        <View style={styles.opciones}>
+          {OPCIONES.map((opcion) => {
+            const activo = seleccion === opcion.clave;
+            return (
+              <Pressable
+                key={opcion.clave}
+                testID={`rol-${opcion.clave}`}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: activo }}
+                accessibilityLabel={`Rol ${opcion.etiqueta}`}
+                onPress={() => setSeleccion(opcion.clave)}
+                style={({ pressed }) => [
+                  styles.opcion,
+                  activo && styles.opcionSeleccionada,
+                  pressed && styles.opcionPresionada,
+                ]}>
+                <View
+                  style={[
+                    styles.iconoContenedor,
+                    activo && styles.iconoSeleccionado,
+                  ]}>
+                  <MaterialCommunityIcons
+                    name={opcion.icono as never}
+                    size={24}
+                    color={activo ? Colores.primario : Colores.blanco}
+                  />
+                </View>
+                <View style={styles.opcionTexto}>
+                  <Text
+                    style={[
+                      styles.opcionTitulo,
+                      activo && styles.opcionTituloSeleccionado,
+                    ]}>
+                    {opcion.etiqueta}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.opcionDescripcion,
+                      activo && styles.opcionDescripcionSeleccionada,
+                    ]}>
+                    {opcion.descripcion}
+                  </Text>
+                </View>
+                {activo ? (
+                  <MaterialCommunityIcons
+                    name="check-circle"
+                    size={22}
+                    color={Colores.primario}
+                  />
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Pressable
+          testID="boton-continuar"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !seleccion }}
+          onPress={continuar}
+          disabled={!seleccion}
+          style={({ pressed }) => [
+            styles.continuar,
+            !seleccion && styles.continuarDeshabilitado,
+            pressed && seleccion && styles.continuarPresionado,
+          ]}>
+          <Text style={styles.continuarTexto}>Continuar</Text>
+          <MaterialCommunityIcons
+            name="arrow-right"
+            size={20}
+            color={Colores.blanco}
+          />
+        </Pressable>
+
+        <Text style={styles.pie}>
+          Movilidad real entre los barrios de Buenaventura y la Universidad
+        </Text>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  seguro: {
     flex: 1,
-    backgroundColor: Colores.fondoAlterno,
+    backgroundColor: Colores.blanco,
   },
-  scroll: {
+  contenido: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: Espacios.xxl,
-    paddingVertical: Espacios.enorme,
+    paddingTop: Espacios.lg,
+    paddingBottom: Espacios.xxxl,
   },
-  header: {
+  identidad: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Espacios.xxxl,
+    gap: Espacios.md,
+    marginBottom: Espacios.xl,
   },
   logo: {
-    width: 76,
-    height: 76,
-    borderRadius: Radios.extra,
+    width: 46,
+    height: 46,
+    borderRadius: Radios.grande,
     backgroundColor: Colores.primario,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Espacios.md,
-  },
-  logoTexto: {
-    color: Colores.blanco,
-    fontSize: 42,
-    fontWeight: '900',
+    justifyContent: 'center',
   },
   marca: {
     color: Colores.primario,
-    fontSize: 27,
+    fontSize: 24,
     fontWeight: '900',
-    letterSpacing: 3,
+    lineHeight: 26,
   },
-  lema: {
+  marcaSecundaria: {
     color: Colores.textoSecundario,
-    fontSize: 14,
-    marginTop: 7,
+    fontSize: 13,
+    letterSpacing: 1,
   },
-  tarjeta: {
-    padding: Espacios.xxxl,
+  fotoContenedor: {
+    height: 210,
+    borderRadius: Radios.extra,
+    overflow: 'hidden',
+    backgroundColor: Colores.primarioSuave,
+  },
+  foto: {
+    width: '100%',
+    height: '100%',
+  },
+  fotoEtiqueta: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: Espacios.lg,
+    backgroundColor: 'rgba(8, 122, 53, 0.82)',
+  },
+  fotoTitulo: {
+    color: Colores.blanco,
+    fontSize: Tipografia.subtitulo,
+    fontWeight: '800',
+  },
+  fotoTexto: {
+    color: Colores.secundario,
+    fontSize: Tipografia.ayuda,
+    marginTop: 2,
+  },
+  credito: {
+    color: Colores.textoTerciario,
+    fontSize: 10,
+    marginTop: 6,
+    textAlign: 'right',
   },
   titulo: {
     color: Colores.texto,
-    fontSize: 27,
-    fontWeight: '800',
-    marginBottom: Espacios.sm,
+    fontSize: 26,
+    fontWeight: '900',
+    marginTop: Espacios.xxl,
   },
   subtitulo: {
     color: Colores.textoSecundario,
     fontSize: Tipografia.cuerpo,
-    marginBottom: Espacios.xxl,
-  },
-  campo: {
-    marginBottom: Espacios.lg,
-  },
-  olvido: {
-    alignSelf: 'flex-end',
+    lineHeight: 21,
     marginTop: Espacios.xs,
-    marginBottom: Espacios.xxl,
   },
-  olvidoTexto: {
-    color: Colores.primario,
-    fontSize: Tipografia.etiqueta,
-    fontWeight: '600',
+  opciones: {
+    gap: Espacios.md,
+    marginTop: Espacios.xl,
   },
-  biometria: {
+  opcion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Espacios.md,
+    padding: Espacios.lg,
+    borderRadius: Radios.grande,
+    borderWidth: 2,
+    borderColor: Colores.primario,
+    backgroundColor: Colores.blanco,
+  },
+  opcionSeleccionada: {
+    backgroundColor: Colores.secundario,
+    borderColor: Colores.secundarioPresionado,
+  },
+  opcionPresionada: {
+    opacity: 0.85,
+  },
+  iconoContenedor: {
+    width: 44,
+    height: 44,
+    borderRadius: Radios.medio,
+    backgroundColor: Colores.primario,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconoSeleccionado: {
+    backgroundColor: Colores.blanco,
+  },
+  opcionTexto: {
+    flex: 1,
+  },
+  opcionTitulo: {
+    color: Colores.texto,
+    fontSize: Tipografia.subtitulo,
+    fontWeight: '800',
+  },
+  opcionTituloSeleccionado: {
+    color: Colores.negro,
+  },
+  opcionDescripcion: {
+    color: Colores.textoSecundario,
+    fontSize: Tipografia.ayuda,
+    marginTop: 2,
+  },
+  opcionDescripcionSeleccionada: {
+    color: Colores.carbon,
+  },
+  continuar: {
+    minHeight: 54,
+    marginTop: Espacios.xxl,
+    borderRadius: Radios.medio,
+    backgroundColor: Colores.primario,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Espacios.sm,
-    minHeight: 48,
-    marginTop: Espacios.md,
-    borderRadius: Radios.grande,
-    borderWidth: 1,
-    borderColor: Colores.borde,
-    backgroundColor: Colores.fondo,
   },
-  biometriaTexto: {
-    color: Colores.primario,
-    fontSize: Tipografia.etiqueta,
-    fontWeight: '700',
+  continuarPresionado: {
+    backgroundColor: Colores.primarioPresionado,
   },
-  registro: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginTop: Espacios.xxl,
+  continuarDeshabilitado: {
+    opacity: 0.45,
   },
-  registroEtiqueta: {
-    color: Colores.textoSecundario,
-    fontSize: Tipografia.etiqueta,
-  },
-  registroEnlace: {
-    color: Colores.primario,
-    fontSize: Tipografia.etiqueta,
+  continuarTexto: {
+    color: Colores.blanco,
+    fontSize: Tipografia.boton,
     fontWeight: '800',
   },
   pie: {
     color: Colores.textoTerciario,
     fontSize: Tipografia.ayuda,
     textAlign: 'center',
-    marginTop: Espacios.xxl,
+    marginTop: Espacios.xl,
   },
 });

@@ -86,6 +86,22 @@ describe('authService', () => {
     expect(guardarSesion).not.toHaveBeenCalled();
   });
 
+  it('no guarda sesión si el rol real no coincide con la selección visual', async () => {
+    api.post.mockResolvedValue({
+      data: {
+        success: true,
+        token: 'token-pasajero',
+        refreshToken: 'refresh-pasajero',
+        usuario: { id: 7, rol: { id: 3, nombreRol: 'Pasajero' } },
+      },
+    });
+
+    await expect(
+      iniciarSesion('ana@correo.com', 'clave123', 2),
+    ).rejects.toThrow('Tu cuenta no corresponde al rol seleccionado.');
+    expect(guardarSesion).not.toHaveBeenCalled();
+  });
+
   it('getUser consulta el endpoint real y actualiza el perfil guardado', async () => {
     api.get.mockResolvedValue({
       data: {

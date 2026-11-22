@@ -139,7 +139,7 @@ export default function GestionScreen() {
               setRefrescando(true);
               void cargar();
             }}
-            colors={['#07883F']}
+            colors={['#087A35']}
           />
         }>
         <Pressable style={styles.volver} onPress={() => volverSeguro()}>
@@ -172,7 +172,7 @@ export default function GestionScreen() {
 
         {cargando ? (
           <View style={styles.cargando}>
-            <ActivityIndicator size="large" color="#07883F" />
+            <ActivityIndicator size="large" color="#087A35" />
             <Text style={styles.ayuda}>Consultando registros...</Text>
           </View>
         ) : items.length === 0 ? (
@@ -233,8 +233,8 @@ const styles = StyleSheet.create({
   contenido: { padding: 24, paddingTop: 65, paddingBottom: 40 },
   centro: { justifyContent: 'center', padding: 30 },
   volver: { marginBottom: 22 },
-  volverTexto: { color: '#07883F', fontSize: 15, fontWeight: '700' },
-  marca: { color: '#07883F', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
+  volverTexto: { color: '#087A35', fontSize: 15, fontWeight: '700' },
+  marca: { color: '#087A35', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
   titulo: { color: '#202936', fontSize: 27, fontWeight: '800', marginTop: 16 },
   descripcion: { color: '#687385', fontSize: 14, marginTop: 8, lineHeight: 20 },
   busqueda: {
@@ -247,9 +247,9 @@ const styles = StyleSheet.create({
     color: '#202936',
   },
   botonBuscar: { alignSelf: 'flex-start', marginTop: 9 },
-  textoBotonBuscar: { color: '#07883F', fontSize: 13, fontWeight: '700' },
+  textoBotonBuscar: { color: '#087A35', fontSize: 13, fontWeight: '700' },
   boton: {
-    backgroundColor: '#07883F',
+    backgroundColor: '#087A35',
     borderRadius: 10,
     paddingVertical: 13,
     alignItems: 'center',
@@ -275,17 +275,17 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 10,
   },
-  registroId: { color: '#07883F', fontWeight: '800', marginBottom: 7 },
+  registroId: { color: '#087A35', fontWeight: '800', marginBottom: 7 },
   registroTexto: { color: '#374151', fontSize: 14, marginBottom: 4 },
   acciones: { flexDirection: 'row', gap: 8, marginTop: 12 },
   botonAccion: {
     borderWidth: 1,
-    borderColor: '#07883F',
+    borderColor: '#087A35',
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
-  textoAccion: { color: '#07883F', fontSize: 13, fontWeight: '700' },
+  textoAccion: { color: '#087A35', fontSize: 13, fontWeight: '700' },
   botonEliminar: { borderColor: '#B91C1C' },
   textoEliminar: { color: '#B91C1C', fontSize: 13, fontWeight: '700' },
 });

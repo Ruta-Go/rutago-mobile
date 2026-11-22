@@ -125,7 +125,7 @@ export default function PanelGestionScreen() {
               setRefrescando(true);
               void cargar();
             }}
-            colors={['#07883F']}
+            colors={['#087A35']}
           />
         }>
         <Pressable style={styles.volver} onPress={() => volverSeguro()}>
@@ -141,7 +141,7 @@ export default function PanelGestionScreen() {
 
         {cargando ? (
           <View style={styles.cargando}>
-            <ActivityIndicator size="large" color="#07883F" />
+            <ActivityIndicator size="large" color="#087A35" />
             <Text style={styles.ayuda}>Consultando módulos...</Text>
           </View>
         ) : (
@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
   contenido: { padding: 24, paddingTop: 65, paddingBottom: 40 },
   centro: { justifyContent: 'center', padding: 30 },
   volver: { marginBottom: 22 },
-  volverTexto: { color: '#07883F', fontSize: 15, fontWeight: '700' },
-  marca: { color: '#07883F', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
+  volverTexto: { color: '#087A35', fontSize: 15, fontWeight: '700' },
+  marca: { color: '#087A35', fontSize: 22, fontWeight: '900', letterSpacing: 4 },
   titulo: { color: '#202936', fontSize: 27, fontWeight: '800', marginTop: 16 },
   rol: { color: '#687385', fontSize: 14, fontWeight: '700', marginTop: 8 },
   descripcion: { color: '#687385', fontSize: 14, marginTop: 8, lineHeight: 20 },
@@ -194,9 +194,9 @@ const styles = StyleSheet.create({
   icono: { fontSize: 26, marginBottom: 8 },
   tarjetaTitulo: { color: '#202936', fontSize: 17, fontWeight: '800' },
   tarjetaDescripcion: { color: '#687385', fontSize: 13, marginTop: 5, lineHeight: 19 },
-  conteo: { color: '#07883F', fontSize: 13, fontWeight: '700', marginTop: 9 },
+  conteo: { color: '#087A35', fontSize: 13, fontWeight: '700', marginTop: 9 },
   boton: {
-    backgroundColor: '#07883F',
+    backgroundColor: '#087A35',
     borderRadius: 10,
     paddingVertical: 13,
     alignItems: 'center',
