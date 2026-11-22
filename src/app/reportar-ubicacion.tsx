@@ -22,6 +22,7 @@ import {
 import { ROLES } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import { api, extraerDatos, extraerLista } from '@/services/api';
+import { mutarConCola } from '@/services/colaOffline';
 import {
   detenerGpsFondo,
   gpsFondoActivo,
@@ -182,7 +183,30 @@ export default function ReportarUbicacionScreen() {
           estadoId,
         };
         if (velocidadKmh != null) cuerpo.velocidadActual = velocidadKmh;
-        await api.put(`/vehiculos/${viaje.vehiculo.id}/ubicacion`, cuerpo);
+
+        const resultado = await mutarConCola({
+          metodo: 'PUT',
+          url: `/vehiculos/${viaje.vehiculo.id}/ubicacion`,
+          cuerpo,
+        });
+
+        if (!resultado.ok) throw resultado.error;
+
+        /**
+         * Sin red conservo en la cola sólo la posición más reciente del
+         * vehículo: al reconectar se envía esa y no el histórico de la caída.
+         * No marco "último reporte" porque todavía no llegó al servidor.
+         */
+        if (resultado.offline) {
+          if (!monitoreando) {
+            Alert.alert(
+              'Sin conexión',
+              'La ubicación quedó guardada y se enviará cuando vuelva la red.',
+            );
+          }
+          return true;
+        }
+
         setUltimoReporte({
           latitud,
           longitud,

@@ -8,6 +8,7 @@ import {
   logout,
   type UsuarioAuth,
 } from '@/services/authService';
+import { vaciarCola } from '@/services/colaOffline';
 
 export type UsuarioSesion = UsuarioAuth;
 
@@ -81,6 +82,8 @@ export const useAuthStore = create<EstadoAuth>((set, get) => ({
 
   cerrarSesion: async () => {
     await logout();
+    // Los cambios sin red pertenecen a la sesión que se cerró: no se reenvían.
+    await vaciarCola();
     set({ token: null, usuario: null, cargando: false });
     router.replace('/');
   },

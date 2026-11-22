@@ -17,6 +17,7 @@ import { volverSeguro } from '@/utils/navegacion';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useSesion } from '@/hooks/useSesion';
 import { api, extraerLista } from '@/services/api';
+import { mutarConCola } from '@/services/colaOffline';
 import { obtenerConCache } from '@/services/offline';
 import {
   mostrarNotificacionLocal,
@@ -104,7 +105,26 @@ export default function NotificacionesScreen() {
     if (marcandoId !== null) return;
     setMarcandoId(notificacion.id);
     try {
-      await api.patch(`/notificaciones/${notificacion.id}/leida`);
+      const resultado = await mutarConCola({
+        metodo: 'PATCH',
+        url: `/notificaciones/${notificacion.id}/leida`,
+      });
+
+      if (!resultado.ok) throw resultado.error;
+
+      /**
+       * Sin red la marca queda guardada y al reenviarla el servidor avisa por
+       * tiempo real (notificacion_leida), así que aquí no recargo la lista con
+       * una petición que no puede salir.
+       */
+      if (resultado.offline) {
+        Alert.alert(
+          'Sin conexión',
+          'La notificación se marcará como leída cuando vuelva la red.',
+        );
+        return;
+      }
+
       await cargar();
     } catch (error) {
       Alert.alert('Error', mensajeError(error));
