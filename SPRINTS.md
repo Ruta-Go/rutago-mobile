@@ -149,3 +149,14 @@ git push origin feature-ASEG1999
 | Carga centralizada de fuentes de iconos en iOS | Terminado | `src/services/fuentes.ts`, `src/app/_layout.tsx`, `__tests__/fuentes.test.ts`, `docs/EXPO_GO_DIAGNOSTICO.md` | jest, tsc, `expo lint --no-cache`, export web | 14 suites/65 pruebas OK; CI verde | `1982069`, PR `#25` mergeado |
 | Verificacion fisica en iPhone/Expo Go | Bloqueado | - | - | Sin dispositivo en este entorno; no afirmo resuelto en dispositivo | - |
 | Reinicio de Metro con cache limpia | Parcialmente realizado | - | Reinicio del bundle web desde copia limpia | Verificado por export web; falta repetir en el iPhone | - |
+
+## Sprint 13 / Cierre de verificaciones y evidencia - 2026-11-22
+
+| Tarea | Estado | Archivos modificados | Pruebas ejecutadas | Resultado | Commit / PR |
+| --- | --- | --- | --- | --- | --- |
+| Reverificación de staging backend | Terminado | `docs/QA_STAGING.md` | `npm test`, `e2e-v2.js`, `/api/health/db` | 44/44 y 23/23 OK; 2 usuarios demo, sin tocar Render | `114e3a4` (documentación, push directo a `main`) |
+| Reinicio de Metro con caché limpia | Terminado | `docs/EXPO_GO_DIAGNOSTICO.md` | `npx expo start --clear --port 19006` | HTTP 200 y bundle reconstruido; proceso detenido | `5dcb5be`, PR `#27` mergeado |
+| Pruebas de registro y recuperación de contraseña | Terminado | `__tests__/authService.test.ts` | jest, tsc, lint | 14 suites / 70 pruebas OK | `52e0981`, PR `#28` mergeado |
+| Matriz funcional móvil | Terminado | `docs/QA_FUNCIONAL_MOVIL.md` | Revisión de evidencias de hoy | Checklist cubierto con estados y limitaciones explícitas | `245e889`, PR `#29` mergeado |
+| CI backend | Parcialmente realizado | - | Workflows `CI Backend RutaGo` y `Deploy Backend RutaGo` | CI verde en run `45083225867`; Deploy falla por secretos SSH ausentes, fallo preexistente | - |
+| Verificación física en Expo Go | Bloqueado | - | - | Sin iPhone/emulador en este entorno | - |
