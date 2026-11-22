@@ -36,6 +36,8 @@ describe('pantalla de bienvenida', () => {
     await render(<PantallaBienvenida />);
 
     expect(screen.getByText('RutaGo')).toBeTruthy();
+    expect(screen.getByTestId('banner-amarillo')).toBeTruthy();
+    expect(screen.getByText('RutaGo · Elige tu rol')).toBeTruthy();
     expect(screen.getByText('Transporte')).toBeTruthy();
     expect(screen.getByText('Selecciona tu rol')).toBeTruthy();
     expect(screen.getByText('Universidad del Pacífico')).toBeTruthy();

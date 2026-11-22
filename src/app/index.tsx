@@ -53,6 +53,10 @@ export default function PantallaBienvenida() {
       <ScrollView
         contentContainerStyle={styles.contenido}
         showsVerticalScrollIndicator={false}>
+        <View style={styles.banner} testID="banner-amarillo">
+          <Text style={styles.bannerTexto}>RutaGo · Elige tu rol</Text>
+        </View>
+
         <View style={styles.identidad}>
           <View style={styles.logo}>
             <MaterialCommunityIcons
@@ -183,6 +187,20 @@ const styles = StyleSheet.create({
     paddingTop: Espacios.lg,
     paddingBottom: Espacios.xxxl,
   },
+  banner: {
+    backgroundColor: Colores.secundario,
+    borderRadius: Radios.medio,
+    paddingVertical: Espacios.sm,
+    paddingHorizontal: Espacios.lg,
+    marginBottom: Espacios.lg,
+    alignItems: 'center',
+  },
+  bannerTexto: {
+    color: Colores.primario,
+    fontSize: Tipografia.etiqueta,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
   identidad: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -204,8 +222,9 @@ const styles = StyleSheet.create({
     lineHeight: 26,
   },
   marcaSecundaria: {
-    color: Colores.textoSecundario,
+    color: Colores.secundarioPresionado,
     fontSize: 13,
+    fontWeight: '800',
     letterSpacing: 1,
   },
   fotoContenedor: {
@@ -265,7 +284,9 @@ const styles = StyleSheet.create({
     padding: Espacios.lg,
     borderRadius: Radios.grande,
     borderWidth: 2,
+    borderLeftWidth: 6,
     borderColor: Colores.primario,
+    borderLeftColor: Colores.secundario,
     backgroundColor: Colores.blanco,
   },
   opcionSeleccionada: {
