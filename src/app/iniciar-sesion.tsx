@@ -19,6 +19,7 @@ import {
   obtenerEstadoBiometria,
   type EstadoBiometria,
 } from '@/services/biometria';
+import { mensajeDeInicioSesion } from '@/utils/mensajes';
 import { esCorreoValido } from '@/utils/validacion';
 
 export default function HomeScreen() {
@@ -87,12 +88,7 @@ export default function HomeScreen() {
       mostrar('Sesión iniciada correctamente', { tipo: 'exito' });
       router.replace('/dashboard');
     } catch (error) {
-      mostrar(
-        error instanceof Error
-          ? error.message
-          : 'No fue posible conectar con el servidor',
-        { tipo: 'error' },
-      );
+      mostrar(mensajeDeInicioSesion(error), { tipo: 'error' });
     } finally {
       setCargando(false);
     }
