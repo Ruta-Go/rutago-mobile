@@ -24,6 +24,17 @@ Ejecutada en esta ventana de trabajo sobre `main` de `rutago-mobile`, después d
 | Sincronización al recuperar internet | Probado | `__tests__/colaOffline.test.ts`: reenvío ordenado al recuperar red | Sin dispositivo físico |
 | Manejo de errores con `Llamar a ANGEL ESTUPIÑAN` | Probado | `__tests__/mensajes.test.ts` y `__tests__/loginBiometria.test.tsx`; `Toast` aplica el contacto a todo toast `error` | Ninguna |
 
+## Comprobación DOM fresca sobre el export final
+
+Ejecutada el 2026-11-22 sobre `http://localhost:8085/` sirviendo `.expo-export`:
+
+- Texto visible: `RutaGo`, `Selecciona tu rol`, `Universidad del Pacífico` y el crédito exacto de la foto.
+- Imagen: 1 `<img>` con `alt="Entrada principal de la Universidad del Pacífico en Buenaventura"` y ruta local del asset.
+- Colores computados: 6 elementos en verde `#087A35`, 3 en amarillo `#FFD900` y 10 en blanco `#FFFFFF`.
+- Consola: sin errores de carga de fuentes; único aviso es el esperado de `expo-notifications` en web.
+
+Esto complementa la evidencia anterior; no sustituye la prueba en iPhone.
+
 ## Qué NO se marcó como probado
 
 - Apertura real en Expo Go desde el iPhone: sin dispositivo/cuenta Expo accesible desde este entorno.
