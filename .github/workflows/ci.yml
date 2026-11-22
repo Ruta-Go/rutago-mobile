@@ -31,6 +31,9 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Verificar NetInfo
+        run: npm run check:entorno
+
       - name: Verificar tipos
         run: npx tsc --noEmit
 
