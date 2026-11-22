@@ -34,3 +34,7 @@ Corrección implementada:
 Prueba nueva: `__tests__/fuentes.test.ts` verifica que el registro centralizado contiene exactamente `material-community` e `ionicons`.
 
 Estado: **Implementado y probado con jest/tsc/lint/export web**. La verificación definitiva en iPhone sigue pendiente porque no tengo dispositivo en este entorno; no afirmo resuelto en dispositivo sin evidencia.
+
+## Reinicio de Metro con caché limpia
+
+Ejecuté `npx expo start --clear --port 19006` desde la copia limpia (con `$env:CI=1` en lugar de `--non-interactive`, que la CLI no acepta). El servidor respondió `HTTP 200` en `http://localhost:19006/`, el bundle `src/app/index.tsx` se construyó con caché vacía y luego se detuvo el proceso. Esto verifica que el bundle arranca con caché limpia; no sustituye la apertura desde Expo Go en el iPhone.
