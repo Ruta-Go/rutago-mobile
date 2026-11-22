@@ -7,8 +7,12 @@ import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 
 // EXPO_PUBLIC_ se incrusta en el bundle; nunca poner secretos aquí.
+// En desarrollo la app usa el staging local de este PC; el release sigue en Render.
 export const API_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'https://rutago-backend-a303.onrender.com';
+  process.env.EXPO_PUBLIC_API_URL ||
+  (process.env.NODE_ENV !== 'production'
+    ? 'http://192.168.0.11:8083'
+    : 'https://rutago-backend-a303.onrender.com');
 
 /** Mismo host, protocolo WS/WSS. Se deriva para no duplicar configuración. */
 export const WS_URL = API_URL.replace(/^http/, 'ws');
