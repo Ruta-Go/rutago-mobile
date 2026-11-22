@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { ToastProvider } from '@/components/ui';
@@ -8,7 +10,11 @@ import { ROLES } from '@/constants/roles';
 import { Colores } from '@/constants/tema';
 import { SesionProvider, useSesion } from '@/hooks/useSesion';
 import { iniciarSincronizacionAutomatica } from '@/services/colaOffline';
+import { FUENTES_ICONOS } from '@/services/fuentes';
 import { escucharTapPush } from '@/services/notificaciones';
+
+// Evito que iOS oculte el splash antes de que las fuentes de iconos estén listas.
+void SplashScreen.preventAutoHideAsync();
 
 function Navegador() {
   const { token, usuario, cargando } = useSesion();
@@ -58,6 +64,7 @@ function Navegador() {
 
 export default function RootLayout() {
   const router = useRouter();
+  const [fuentesListas, errorFuentes] = useFonts(FUENTES_ICONOS);
 
   useEffect(
     () =>
@@ -70,13 +77,25 @@ export default function RootLayout() {
   /** Reenvío los cambios guardados sin red en cuanto vuelve la conexión. */
   useEffect(() => iniciarSincronizacionAutomatica(), []);
 
+  useEffect(() => {
+    if (fuentesListas || errorFuentes) {
+      void SplashScreen.hideAsync();
+    }
+  }, [fuentesListas, errorFuentes]);
+
   return (
     <ToastProvider>
       <SesionProvider>
         <StatusBar style="dark" />
         <View style={styles.contenedorAplicacion}>
           <View style={styles.franjaIdentidad} />
-          <Navegador />
+          {!fuentesListas && !errorFuentes ? (
+            <View style={styles.cargando}>
+              <ActivityIndicator size="large" color={Colores.primario} />
+            </View>
+          ) : (
+            <Navegador />
+          )}
         </View>
       </SesionProvider>
     </ToastProvider>

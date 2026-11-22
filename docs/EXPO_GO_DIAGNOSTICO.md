@@ -22,4 +22,15 @@ Estado: **Investigado / mitigado**. No afirmo resuelto en el iPhone hasta verifi
 
 ## Fuentes de iconos en iOS
 
-En análisis: `Calling the 'loadAsync' function has failed`, `Registering 'material-community' font failed`, `Registering 'ionicons' font failed`, `CTFontManagerError 104` sugieren registros duplicados de fuentes cuando varios componentes cargan `@expo/vector-icons` al mismo tiempo. Se documentará la corrección en la siguiente tarea.
+Causa identificada: `@expo/vector-icons` registra cada fuente al montar el primer icono de esa familia. Al renderizarse al mismo tiempo `index.tsx` (`MaterialCommunityIcons`), `iniciar-sesion.tsx` (`MaterialCommunityIcons`) y `Input.tsx` (`Ionicons`), iOS podía recibir dos registros del mismo `CTFont` y devolver `CTFontManagerError code: 104`, además de `Calling the 'loadAsync' function has failed`.
+
+Corrección implementada:
+
+- `src/services/fuentes.ts` exporta `FUENTES_ICONOS` con las dos familias en un solo objeto.
+- `src/app/_layout.tsx` llama a `useFonts(FUENTES_ICONOS)` **antes** de renderizar el navegador y mantiene el splash hasta que termina.
+- Como `Font.isLoaded()` ya es `true` cuando se montan los iconos, sus `componentDidMount` ya no vuelven a llamar a `Font.loadAsync()`.
+- No se eliminaron iconos ni se reemplazó `@expo/vector-icons`.
+
+Prueba nueva: `__tests__/fuentes.test.ts` verifica que el registro centralizado contiene exactamente `material-community` e `ionicons`.
+
+Estado: **Implementado y probado con jest/tsc/lint/export web**. La verificación definitiva en iPhone sigue pendiente porque no tengo dispositivo en este entorno; no afirmo resuelto en dispositivo sin evidencia.
