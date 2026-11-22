@@ -108,3 +108,24 @@ git push origin main
 cd C:\Users\Usuario\OneDrive\Escritorio\RUTAGO\rutago-mobile
 git push origin feature-ASEG1999
 ```
+
+## Sprint 10 / Staging aislado (backend) - 2026-11-22
+
+| Tarea | Repositorio | Resultado | Commit / PR | Hecho |
+| --- | --- | --- | --- | --- |
+| Base y role aislados, seed con solo Conductor y Pasajero, guard antiproduccion | `rutago-backend` | Implementado y probado: seed rechaza produccion con exit 1; idempotente | `6b568b0`, PR `#37` | Si |
+| Documentacion del procedimiento y evidencia de QA | `rutago-backend` | `docs/STAGING.md` y `docs/QA_STAGING.md` | `e488f93`, PR `#37` | Si |
+| E2E de API: login, barrios, Universidad, horarios, viajes, panel conductor, notificaciones y GPS | `rutago-backend` | 23/23 verificaciones OK | PR `#37` | Si |
+| Bateria unitaria del backend | `rutago-backend` | `npm test`: 44/44 pruebas OK | PR `#37` | Si |
+| CI del backend | `rutago-backend` | Workflow `Deploy Backend RutaGo` falla en `Verificar conexion SSH` por secretos SSH ausentes (fallo preexistente, no causado por este cambio) | run `45061064951` | No |
+
+## Sprint 11 / Errores con contacto e identidad visual (movil) - 2026-11-22
+
+| Tarea | Repositorio | Resultado | Commit / PR | Hecho |
+| --- | --- | --- | --- | --- |
+| Todo error muestra la falla y ademas `Llamar a ANGEL ESTUPIÑAN`; login dice `Clave o correo incorrecto` | `rutago-mobile` | Implementado, 5 pruebas nuevas, 11 suites/46 pruebas OK | `40b8f18`, PR `#18` mergeado | Si |
+| Franja verde `#087A35`, amarillo `#FFD900` y blanco en todas las pantallas | `rutago-mobile` | Implementado en `_layout.tsx`; export web 22 bundles/20 rutas | `549190f`, PR `#18` mergeado | Si |
+| Verificacion tsc, lint, jest y export | `rutago-mobile` | Todo verde desde copia limpia fuera de OneDrive | PR `#18` | Si |
+| CI del movil | `rutago-mobile` | 3 ejecuciones verde; PR `#18` mergeado en `ce4e8cc` | runs `45073378801`, `45073394238`, `45073423627` | Si |
+| Verificacion visual en Expo Go con dispositivo | `rutago-mobile` | Bloqueado: no hay dispositivo/cuenta Expo; se uso export web | - | No |
+| Sincronizacion offline probada sin red real | `rutago-mobile` | No ejecutada en esta ventana; la suite completa si incluye las pruebas unitarias de offline | - | No |
