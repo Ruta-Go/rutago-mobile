@@ -26,8 +26,12 @@ export function useAuth() {
   const iniciarSesion = async (
     correo: string,
     contrasena: string,
+    rolEsperado?: number,
   ): Promise<LoginResponse> => {
-    const respuesta = await iniciarSesionServicio(correo, contrasena);
+    const respuesta =
+      rolEsperado === undefined
+        ? await iniciarSesionServicio(correo, contrasena)
+        : await iniciarSesionServicio(correo, contrasena, rolEsperado);
     await refrescarSesion();
     return respuesta;
   };

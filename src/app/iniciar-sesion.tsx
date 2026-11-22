@@ -12,6 +12,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { Button, Card, Input, useToast } from '@/components/ui';
+import { nombreRol, rolDesdeSeleccion } from '@/constants/roles';
 import { Colores, Espacios, Radios, Tipografia } from '@/constants/tema';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -21,8 +22,10 @@ import {
 import { esCorreoValido } from '@/utils/validacion';
 
 export default function HomeScreen() {
-  const parametros = useLocalSearchParams<{ correo?: string }>();
+  const parametros = useLocalSearchParams<{ correo?: string; rol?: string }>();
   const { iniciarSesion, iniciarSesionBiometrica } = useAuth();
+  const rolEsperado = rolDesdeSeleccion(parametros.rol);
+  const etiquetaRol = rolEsperado ? nombreRol(rolEsperado) : null;
   const [correo, setCorreo] = useState(
     typeof parametros.correo === 'string' ? parametros.correo : '',
   );
@@ -75,7 +78,11 @@ export default function HomeScreen() {
     try {
       setCargando(true);
 
-      await iniciarSesion(correo.trim(), contrasena);
+      if (rolEsperado === undefined) {
+        await iniciarSesion(correo.trim(), contrasena);
+      } else {
+        await iniciarSesion(correo.trim(), contrasena, rolEsperado);
+      }
 
       mostrar('Sesión iniciada correctamente', { tipo: 'exito' });
       router.replace('/dashboard');
@@ -130,7 +137,9 @@ export default function HomeScreen() {
         <Card style={styles.tarjeta}>
           <Text style={styles.titulo}>¡Bienvenido!</Text>
           <Text style={styles.subtitulo}>
-            Ingresa a tu cuenta para continuar
+            {etiquetaRol
+              ? `Ingresa con tu cuenta de ${etiquetaRol} para continuar`
+              : 'Ingresa a tu cuenta para continuar'}
           </Text>
 
           <Input
