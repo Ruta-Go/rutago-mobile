@@ -139,3 +139,13 @@ git push origin feature-ASEG1999
 | CI del movil | `rutago-mobile` | 3 ejecuciones verde; PR `#18` mergeado en `ce4e8cc` | runs `45073378801`, `45073394238`, `45073423627` | Si |
 | Verificacion visual en Expo Go con dispositivo | `rutago-mobile` | Bloqueado: no hay dispositivo/cuenta Expo; se uso export web | - | No |
 | Sincronizacion offline probada sin red real | `rutago-mobile` | No ejecutada en esta ventana; la suite completa si incluye las pruebas unitarias de offline | - | No |
+
+## Sprint 12 / Errores de Expo Go (movil) - 2026-11-22
+
+| Tarea | Estado | Archivos modificados | Pruebas ejecutadas | Resultado | Commit / PR |
+| --- | --- | --- | --- | --- | --- |
+| NetInfo: verificar declaracion, instalacion y compatibilidad | Terminado | `scripts/verificar-entorno.js`, `package.json`, `.github/workflows/ci.yml`, `docs/EXPO_GO_DIAGNOSTICO.md` | `npm run check:entorno`, jest, tsc, lint, export web | `NETINFO_OK declarado=12.0.1 instalado=12.0.1`; 11 suites/46 pruebas OK; CI verde | `ea05c17`, PR `#23` mergeado |
+| Dependencias del SDK 58 | Terminado | `package.json`, `package-lock.json`, `app.json`, `docs/EXPO_GO_DIAGNOSTICO.md` | `npx expo install --fix`, `npx expo install --check`, jest, tsc, lint, export web | `Dependencies are up to date`; 11 suites/46 pruebas OK; CI verde | `938038c`, PR `#24` mergeado |
+| Carga centralizada de fuentes de iconos en iOS | Terminado | `src/services/fuentes.ts`, `src/app/_layout.tsx`, `__tests__/fuentes.test.ts`, `docs/EXPO_GO_DIAGNOSTICO.md` | jest, tsc, `expo lint --no-cache`, export web | 14 suites/65 pruebas OK; CI verde | `1982069`, PR `#25` mergeado |
+| Verificacion fisica en iPhone/Expo Go | Bloqueado | - | - | Sin dispositivo en este entorno; no afirmo resuelto en dispositivo | - |
+| Reinicio de Metro con cache limpia | Parcialmente realizado | - | Reinicio del bundle web desde copia limpia | Verificado por export web; falta repetir en el iPhone | - |
