@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/ui';
 import { ROLES } from '@/constants/roles';
 import { Colores } from '@/constants/tema';
 import { SesionProvider, useSesion } from '@/hooks/useSesion';
+import { iniciarSincronizacionAutomatica } from '@/services/colaOffline';
 import { escucharTapPush } from '@/services/notificaciones';
 
 function Navegador() {
@@ -65,6 +66,9 @@ export default function RootLayout() {
       }),
     [router],
   );
+
+  /** Reenvío los cambios guardados sin red en cuanto vuelve la conexión. */
+  useEffect(() => iniciarSincronizacionAutomatica(), []);
 
   return (
     <ToastProvider>

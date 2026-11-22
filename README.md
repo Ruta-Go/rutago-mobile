@@ -71,17 +71,30 @@ Enlace resultante: `rutagomobile://recuperar-password?token=<token>`. Sin esa va
 - El canal en tiempo real escucha `ws(s)://<backend>/ws?token=<accessToken>` con el token de la sesión. Los eventos `notificacion` y `notificacion_leida` refrescan la lista; si el socket no conecta, la pantalla sigue funcionando con el REST y **no simula** eventos.
 - Para el seguimiento, el cliente se suscribe a `viaje:<id>` (validado en backend por propiedad real) y aplica los eventos `ubicacion`. El botón “Abrir mapa” abre OpenStreetMap con las coordenadas reportadas; no se dibuja un bus inventado cuando no hay datos.
 
+## Sin conexión
+
+La app sigue funcionando cuando la red cae y no pierde el trabajo hecho en campo:
+
+- **Lecturas:** `obtenerConCache` (`src/services/offline.ts`) intenta la red primero y, si falla, devuelve la última respuesta real guardada en `SecureStore`. Sin caché propaga el error original; nunca inventa registros.
+- **Escrituras:** `mutarConCola` (`src/services/colaOffline.ts`) envía el cambio si hay red y, si no, lo guarda en la cola `rutago_cola_offline` para reenviarlo después.
+- **Detección:** `src/services/conexion.ts` escucha el estado del dispositivo con `@react-native-community/netinfo` y dispara la sincronización al recuperar la conexión. También se intenta al arrancar la app, por si quedó trabajo de una sesión anterior.
+- **Conflictos:** al encolar, un `PUT` o `PATCH` sobre el mismo recurso reemplaza al pendiente (último en ganar), de modo que sólo se reenvía la posición o el estado más reciente. Al sincronizar se conserva el orden original, se descartan los `4xx` del servidor (validación o conflicto) y se limitan los reintentos a 5 por cambio.
+- **Sesión:** `cerrarSesion` vacía la cola para no reenviar cambios de otra cuenta.
+
+Están conectados a la cola el reporte de ubicación del conductor y el marcado de notificaciones como leidas. Las decisiones con efecto inmediato y no repetibles (bajarse o cancelar un viaje) siguen exigiendo red: reenviarlas horas después aplicaría una decisión que ya no es la del usuario.
+
 ## Verificación
 
 ```bash
 npx tsc --noEmit
 npm run lint
+npm test
 npx expo export --platform web --output-dir <ruta-temporal>
 ```
 
-Todos los comandos pasan sin errores: `npx tsc --noEmit` y `npm run lint` sin hallazgos; `npx expo export --platform web` compila 14 bundles y genera **11 rutas estáticas** (antes 7), incluidas las cuatro nuevas. No se generan artefactos dentro del repositorio: la exportación se hace en una ruta temporal.
+Todos los comandos pasan sin errores: `npx tsc --noEmit` y `npm run lint` sin hallazgos; `npm test` ejecuta **54 pruebas en 11 suites** (cola offline, conexión, sesión, GPS, notificaciones, biometría y accesibilidad); `npx expo export --platform web` compila **21 bundles** y genera **19 rutas estáticas**. No se generan artefactos dentro del repositorio: la exportación se hace en una ruta temporal.
 
-`.github/workflows/ci.yml` repite `npm ci`, `npx tsc --noEmit` y `npm run lint` en pushes y PRs de `feature-ASEG1999`, `dev` y `main`. El build/submit con EAS queda pendiente de credenciales de Expo.
+`.github/workflows/ci.yml` repite `npm ci`, `npx tsc --noEmit`, `npm run lint`, `npm test` y la exportación del bundle web en pushes y PRs de `feature-ASEG1999`, `dev` y `main`. El build/submit con EAS queda pendiente de credenciales de Expo.
 
 ## EAS (preparado, sin ejecutar)
 
