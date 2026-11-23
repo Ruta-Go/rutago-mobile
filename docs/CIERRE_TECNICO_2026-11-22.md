@@ -46,6 +46,17 @@ El binario nativo corrupto se restauró desde el tarball oficial del registro np
 - **CI:** `Typecheck y lint` = success.
 - **Falta:** validación visual en dispositivo; la navegación en sí queda cubierta por pruebas automatizadas.
 
+### Sprint 3
+
+#### Tarea 18 — Integración de notificaciones push de Expo y registro de tokens
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo de esta jornada:** el servicio móvil ahora envía el token real de Expo a `POST /api/notificaciones/push-token` con la plataforma detectada. El backend ya expone ese endpoint con migración aditiva, modelo, repositorio, servicio y pruebas (PR backend `#40`). El token no se devuelve ni se imprime en logs.
+- **Archivos:** `src/services/notificaciones.ts`, `__tests__/notificaciones.test.ts`, este documento. Backend: `docs/PUSH_TOKEN_REGISTRO.md` y archivos indicados en ese PR.
+- **Pruebas:** 15 suites / 78 pruebas OK (3 nuevas móviles); backend 50/50 en la rama push y 53/53 tras integrar capacidad; `npx tsc --noEmit` limpio; `npm run lint` limpio.
+- **Commit / PR:** se registrará al publicar este bloque.
+- **Falta:** proveedor push remoto y prueba con notificación real en dispositivo. No se simuló entrega push.
+
 ### Tareas transversales
 
 #### Tarea 43 — CI/CD móvil
