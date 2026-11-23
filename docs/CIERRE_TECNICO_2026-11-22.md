@@ -30,7 +30,8 @@ El binario nativo corrupto se restauró desde el tarball oficial del registro np
 - **Trabajo de esta jornada:** se documentó la restauración del entorno local de pruebas; el cambio versionado es la resolución explícita del preset de Jest.
 - **Archivos:** `jest.config.js`, este documento.
 - **Pruebas:** `npm test` → 14 suites / 70 pruebas OK; `npx tsc --noEmit` limpio; `npm run lint` limpio.
-- **Commit / PR:** se registrará al publicar este bloque.
+- **Commit / PR:** `ce0f4ad` · PR `#36`.
+- **CI:** `Typecheck y lint` = success.
 - **Falta:** nada local. EAS sigue dependiendo de cuenta externa (Tarea 30).
 
 ### Tareas transversales
@@ -41,7 +42,8 @@ El binario nativo corrupto se restauró desde el tarball oficial del registro np
 - **Trabajo de esta jornada:** se corrigió la configuración de Jest para que la CI vuelva a ejecutar las 70 pruebas de forma determinista. La parte de CD (EAS build/submit) sigue bloqueada por cuenta Expo.
 - **Archivos:** `jest.config.js`, este documento.
 - **Pruebas:** verificación local previa al PR; CI del PR pendiente de registrar.
-- **Commit / PR:** se registrará al publicar este bloque.
+- **Commit / PR:** `ce0f4ad` · PR `#36`.
+- **CI:** `Typecheck y lint` = success.
 - **Falta:** cuenta Expo y credenciales de firma para `eas build`/`eas submit`.
 
 ## Estado consolidado al inicio de la jornada
