@@ -34,6 +34,17 @@ El binario nativo corrupto se restauró desde el tarball oficial del registro np
 - **CI:** `Typecheck y lint` = success.
 - **Falta:** nada local. EAS sigue dependiendo de cuenta externa (Tarea 30).
 
+### Sprint 2
+
+#### Tarea 14 — Navegación por pestañas según el rol del usuario
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo de esta jornada:** se añadió una barra inferior `TabBarPorRol` con destinos distintos para Pasajero, Conductor y Administrador. Se montó desde el layout raíz sin mover rutas, sin cambiar deep links y sin tocar los `Stack.Protected`.
+- **Archivos:** `src/components/navegacion/TabBarPorRol.tsx`, `src/app/_layout.tsx`, `__tests__/tabBarPorRol.test.tsx`, este documento.
+- **Pruebas:** 15 suites / 75 pruebas OK (5 nuevas); `npx tsc --noEmit` limpio; `npm run lint` limpio; `npx expo export --platform web` correcto, 22 bundles y 20 rutas.
+- **Commit / PR:** se registrará al publicar este bloque.
+- **Falta:** validación visual en dispositivo; la navegación en sí queda cubierta por pruebas automatizadas.
+
 ### Tareas transversales
 
 #### Tarea 43 — CI/CD móvil
