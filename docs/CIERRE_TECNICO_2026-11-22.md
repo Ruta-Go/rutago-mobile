@@ -42,7 +42,8 @@ El binario nativo corrupto se restauró desde el tarball oficial del registro np
 - **Trabajo de esta jornada:** se añadió una barra inferior `TabBarPorRol` con destinos distintos para Pasajero, Conductor y Administrador. Se montó desde el layout raíz sin mover rutas, sin cambiar deep links y sin tocar los `Stack.Protected`.
 - **Archivos:** `src/components/navegacion/TabBarPorRol.tsx`, `src/app/_layout.tsx`, `__tests__/tabBarPorRol.test.tsx`, este documento.
 - **Pruebas:** 15 suites / 75 pruebas OK (5 nuevas); `npx tsc --noEmit` limpio; `npm run lint` limpio; `npx expo export --platform web` correcto, 22 bundles y 20 rutas.
-- **Commit / PR:** se registrará al publicar este bloque.
+- **Commit / PR:** `42ba1d8` · PR `#37`.
+- **CI:** `Typecheck y lint` = success.
 - **Falta:** validación visual en dispositivo; la navegación en sí queda cubierta por pruebas automatizadas.
 
 ### Tareas transversales
