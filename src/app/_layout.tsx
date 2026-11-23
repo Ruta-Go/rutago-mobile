@@ -5,6 +5,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { TabBarPorRol } from '@/components/navegacion/TabBarPorRol';
 import { ToastProvider } from '@/components/ui';
 import { ROLES } from '@/constants/roles';
 import { Colores } from '@/constants/tema';
@@ -94,7 +95,12 @@ export default function RootLayout() {
               <ActivityIndicator size="large" color={Colores.primario} />
             </View>
           ) : (
-            <Navegador />
+            <>
+              <View style={styles.cuerpo}>
+                <Navegador />
+              </View>
+              <TabBarPorRol />
+            </>
           )}
         </View>
       </SesionProvider>
@@ -110,6 +116,9 @@ const styles = StyleSheet.create({
   franjaIdentidad: {
     height: 4,
     backgroundColor: Colores.secundario,
+  },
+  cuerpo: {
+    flex: 1,
   },
   cargando: {
     flex: 1,
