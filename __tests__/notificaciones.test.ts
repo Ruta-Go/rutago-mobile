@@ -122,9 +122,9 @@ describe('servicio de notificaciones', () => {
 
   describe('destino al tocar', () => {
     it('abrió el viaje cuando la notificación trae viajeId', () => {
-      expect(destinoDeNotificacion({ viajeId: 7 })).toBe('/mis-viajes?viajeId=7');
+      expect(destinoDeNotificacion({ viajeId: 7 })).toBe('/detalle-viaje?viajeId=7');
       expect(destinoDeNotificacion({ viajeId: '15' })).toBe(
-        '/mis-viajes?viajeId=15',
+        '/detalle-viaje?viajeId=15',
       );
     });
 
@@ -164,7 +164,7 @@ describe('servicio de notificaciones', () => {
 
       manejador(respuestaCon({ viajeId: 9 }));
 
-      expect(alTocar).toHaveBeenCalledWith('/mis-viajes?viajeId=9');
+      expect(alTocar).toHaveBeenCalledWith('/detalle-viaje?viajeId=9');
     });
 
     it('no navegó cuando el usuario descartó la notificación', () => {
@@ -185,7 +185,7 @@ describe('servicio de notificaciones', () => {
 
       escucharNotificaciones({ alTocar });
 
-      expect(alTocar).toHaveBeenCalledWith('/mis-viajes?viajeId=4');
+      expect(alTocar).toHaveBeenCalledWith('/detalle-viaje?viajeId=4');
       expect(limpiarUltima).toHaveBeenCalled();
     });
 
@@ -202,8 +202,8 @@ describe('servicio de notificaciones', () => {
       manejador(respuestaCon({ viajeId: 5 }, TOQUE, 'aviso-2'));
 
       expect(alTocar).toHaveBeenCalledTimes(2);
-      expect(alTocar).toHaveBeenNthCalledWith(1, '/mis-viajes?viajeId=4');
-      expect(alTocar).toHaveBeenNthCalledWith(2, '/mis-viajes?viajeId=5');
+      expect(alTocar).toHaveBeenNthCalledWith(1, '/detalle-viaje?viajeId=4');
+      expect(alTocar).toHaveBeenNthCalledWith(2, '/detalle-viaje?viajeId=5');
     });
 
     it('quitó ambos listeners al limpiar', () => {

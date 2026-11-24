@@ -51,7 +51,7 @@ export type DestinoPush =
   | '/notificaciones'
   | '/mis-viajes'
   | '/dashboard'
-  | `/mis-viajes?viajeId=${number}`;
+  | `/detalle-viaje?viajeId=${number}`;
 
 const DESTINOS_PERMITIDOS: DestinoPush[] = [
   '/notificaciones',
@@ -61,7 +61,7 @@ const DESTINOS_PERMITIDOS: DestinoPush[] = [
 
 /**
  * Decidí a qué pantalla lleva una notificación según sus datos: si trae un
- * viaje válido abro ese viaje; si trae una ruta conocida la respeto y si no,
+ * viaje válido abro su detalle; si trae una ruta conocida la respeto y si no,
  * caigo en el centro de notificaciones. Nunca navego a rutas arbitrarias.
  */
 export function destinoDeNotificacion(datos: unknown): DestinoPush {
@@ -70,7 +70,7 @@ export function destinoDeNotificacion(datos: unknown): DestinoPush {
 
   const viajeId = Number(registro.viajeId);
   if (Number.isInteger(viajeId) && viajeId > 0) {
-    return `/mis-viajes?viajeId=${viajeId}`;
+    return `/detalle-viaje?viajeId=${viajeId}`;
   }
 
   const ruta = DESTINOS_PERMITIDOS.find((valido) => valido === registro.ruta);

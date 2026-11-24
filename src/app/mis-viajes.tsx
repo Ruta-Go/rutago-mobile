@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ComponentRef,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { isAxiosError, type AxiosError } from 'axios';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Stack, router } from 'expo-router';
 
 import { volverSeguro } from '@/utils/navegacion';
 
@@ -98,19 +91,6 @@ export default function MisViajesScreen() {
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [accionEnCurso, setAccionEnCurso] = useState<string | null>(null);
-
-  // Al llegar desde una notificación traigo el viaje a la vista y lo resalto.
-  const params = useLocalSearchParams<{ viajeId?: string }>();
-  const viajeDestacado = Number(params.viajeId) || null;
-  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
-  const [posicionDestacado, setPosicionDestacado] = useState<number | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (posicionDestacado === null) return;
-    scrollRef.current?.scrollTo({ y: posicionDestacado, animated: true });
-  }, [posicionDestacado]);
 
   const cargarUbicaciones = useCallback(async (lista: Viaje[]) => {
     const activos = lista.filter((viaje) => {
@@ -246,7 +226,6 @@ export default function MisViajesScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView
-        ref={scrollRef}
         style={styles.container}
         contentContainerStyle={styles.contenido}
         refreshControl={
@@ -309,18 +288,7 @@ export default function MisViajesScreen() {
                 : [];
             const trazo = trazoDeRuta(viaje.ruta?.rutaGeometria);
             return (
-              <View
-                key={viaje.id}
-                style={[
-                  styles.tarjeta,
-                  viaje.id === viajeDestacado && styles.tarjetaDestacada,
-                ]}
-                onLayout={
-                  viaje.id === viajeDestacado
-                    ? (evento) =>
-                        setPosicionDestacado(evento.nativeEvent.layout.y)
-                    : undefined
-                }>
+              <View key={viaje.id} style={styles.tarjeta}>
                 <View style={styles.cabecera}>
                   <Text style={styles.nombreRuta}>{tituloRuta(viaje)}</Text>
                   <Text style={styles.estadoChip}>{nombreEstado(viaje)}</Text>
@@ -508,11 +476,6 @@ const styles = StyleSheet.create({
     padding: 18,
     marginTop: 20,
     backgroundColor: '#FFFFFF',
-  },
-  tarjetaDestacada: {
-    borderWidth: 2,
-    borderColor: '#087A35',
-    backgroundColor: '#F6FBF8',
   },
   cabecera: {
     flexDirection: 'row',

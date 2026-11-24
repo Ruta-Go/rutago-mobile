@@ -47,6 +47,7 @@ function Navegador() {
         <Stack.Screen name="viajes-disponibles" />
         <Stack.Screen name="aceptar-viaje" />
         <Stack.Screen name="mis-viajes" />
+        <Stack.Screen name="detalle-viaje" />
         <Stack.Screen name="mis-solicitudes" />
         <Stack.Screen name="mi-perfil" />
         <Stack.Screen name="notificaciones" />
