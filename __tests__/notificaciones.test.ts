@@ -57,10 +57,10 @@ const configuracion = Constants as unknown as {
   expoConfig: { extra: { eas: { projectId?: string } } };
 };
 
-function respuestaCon(data: unknown, accion = TOQUE) {
+function respuestaCon(data: unknown, accion = TOQUE, identifier?: string) {
   return {
     actionIdentifier: accion,
-    notification: { request: { content: { data } } },
+    notification: { request: { identifier, content: { data } } },
   };
 }
 
@@ -187,6 +187,23 @@ describe('servicio de notificaciones', () => {
 
       expect(alTocar).toHaveBeenCalledWith('/mis-viajes?viajeId=4');
       expect(limpiarUltima).toHaveBeenCalled();
+    });
+
+    it('no navegó dos veces cuando el toque inicial también llega al listener', () => {
+      const toque = respuestaCon({ viajeId: 4 }, TOQUE, 'aviso-1');
+      ultimaRespuesta.mockReturnValue(toque);
+      const alTocar = jest.fn();
+
+      escucharNotificaciones({ alTocar });
+      const manejador = escucharToques.mock.calls[0][0] as (
+        respuesta: unknown,
+      ) => void;
+      manejador(toque);
+      manejador(respuestaCon({ viajeId: 5 }, TOQUE, 'aviso-2'));
+
+      expect(alTocar).toHaveBeenCalledTimes(2);
+      expect(alTocar).toHaveBeenNthCalledWith(1, '/mis-viajes?viajeId=4');
+      expect(alTocar).toHaveBeenNthCalledWith(2, '/mis-viajes?viajeId=5');
     });
 
     it('quitó ambos listeners al limpiar', () => {

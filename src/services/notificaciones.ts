@@ -95,12 +95,19 @@ export function escucharNotificaciones({
 }: ManejadoresNotificacion): () => void {
   if (Platform.OS === 'web') return () => {};
 
+  // El toque que abrió la app puede llegar por getLastNotificationResponse y
+  // también por el listener: recuerdo el último atendido para no navegar dos veces.
+  let ultimoAtendido: string | null = null;
+
   const atenderRespuesta = (respuesta: Notificaciones.NotificationResponse) => {
     if (
       respuesta.actionIdentifier !== Notificaciones.DEFAULT_ACTION_IDENTIFIER
     ) {
       return;
     }
+    const identificador = respuesta.notification.request.identifier;
+    if (identificador && identificador === ultimoAtendido) return;
+    ultimoAtendido = identificador ?? null;
     alTocar(destinoDeNotificacion(respuesta.notification.request.content.data));
   };
 
