@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -12,7 +12,7 @@ import { Colores } from '@/constants/tema';
 import { SesionProvider, useSesion } from '@/hooks/useSesion';
 import { iniciarSincronizacionAutomatica } from '@/services/colaOffline';
 import { FUENTES_ICONOS } from '@/services/fuentes';
-import { escucharTapPush } from '@/services/notificaciones';
+import { GestorNotificaciones } from '@/components/notificaciones/GestorNotificaciones';
 
 // Evito que iOS oculte el splash antes de que las fuentes de iconos estén listas.
 void SplashScreen.preventAutoHideAsync();
@@ -64,16 +64,7 @@ function Navegador() {
 }
 
 export default function RootLayout() {
-  const router = useRouter();
   const [fuentesListas, errorFuentes] = useFonts(FUENTES_ICONOS);
-
-  useEffect(
-    () =>
-      escucharTapPush((destino) => {
-        router.push(destino as Parameters<typeof router.push>[0]);
-      }),
-    [router],
-  );
 
   /** Reenvío los cambios guardados sin red en cuanto vuelve la conexión. */
   useEffect(() => iniciarSincronizacionAutomatica(), []);
@@ -88,6 +79,7 @@ export default function RootLayout() {
     <ToastProvider>
       <SesionProvider>
         <StatusBar style="dark" />
+        <GestorNotificaciones />
         <View style={styles.contenedorAplicacion}>
           <View style={styles.franjaIdentidad} />
           {!fuentesListas && !errorFuentes ? (

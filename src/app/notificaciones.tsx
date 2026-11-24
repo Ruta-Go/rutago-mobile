@@ -91,7 +91,12 @@ export default function NotificacionesScreen() {
         typeof datos.mensaje === 'string'
           ? datos.mensaje
           : 'Tienes un aviso real de RutaGo.';
-      void mostrarNotificacionLocal(titulo, cuerpo);
+      const viajeId = Number(datos.viajeId);
+      void mostrarNotificacionLocal(
+        titulo,
+        cuerpo,
+        Number.isInteger(viajeId) && viajeId > 0 ? { viajeId } : undefined,
+      );
     }
     if (
       evento.tipo === 'notificacion' ||
