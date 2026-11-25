@@ -55,7 +55,7 @@ export default function BuscarViajesScreen() {
     const cargar = async () => {
       try {
         const respuesta = await api.get<unknown>('/barrios', {
-          params: { paginaActual: 1, registrosPorPagina: 200 },
+          params: { paginaActual: 1, registrosPorPagina: 100 },
         });
         if (activo) setBarrios(extraerLista<BarrioCatalogo>(respuesta.data));
       } catch (error) {

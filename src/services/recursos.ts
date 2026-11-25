@@ -59,7 +59,8 @@ export async function listarRecurso(
   const respuesta = await api.get<unknown>(endpoint, {
     params: {
       paginaActual: 1,
-      registrosPorPagina: 200,
+      // El backend valida registrosPorPagina con un máximo de 100.
+      registrosPorPagina: 100,
       ...params,
     },
   });
