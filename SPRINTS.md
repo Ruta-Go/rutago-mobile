@@ -178,3 +178,12 @@ git push origin feature-ASEG1999
 | --- | --- | --- | --- | --- | --- |
 | T28 · Decisiones responsivas por ancho | TERMINADO | `src/hooks/useResponsivo.ts`, `src/app/dashboard.tsx` | `npm test`, `npx tsc --noEmit`, `npm run lint` | Padding 16/24/40, cabecera 40/65 y saludo 23/27/30 según ancho; fallback 360 si la dimensión no es válida | `5c82bc4` · PR del cierre autónomo |
 | T29 · Accesibilidad y rendimiento del dashboard | TERMINADO | `src/app/dashboard.tsx`, `__tests__/responsive.test.ts` | Ídem | Botones con `accessibilityRole` y etiqueta descriptiva; listas memoizadas por rol; 20 suites / 110 pruebas OK | `5c82bc4` |
+
+## Cierre autónomo 2026-11-25 · T33, T41, T42 y T43
+
+| Tarea | Estado | Archivos modificados | Pruebas ejecutadas | Resultado | Commit / PR |
+| --- | --- | --- | --- | --- | --- |
+| T33 · E2E y export real | TERMINADO | Sin cambios de código | `npx expo export --platform web --output-dir <temp>` | Export correcto: 21 rutas, 84 archivos, sin errores de fuentes ni imports | PR del cierre autónomo |
+| T41 · Decisión tecnológica (Tailwind, SQLite, PostGIS) | TERMINADO | `docs/DECISIONES_TECNICAS_2026-11-25.md` | Revisión de dependencias, suites y contratos | No migrar a NativeWind; no adoptar SQLite sin build nativo; conservar PostGIS con fallback | PR del cierre autónomo |
+| T42 · Arquitectura offline-first | IMPLEMENTADO | `docs/DECISIONES_TECNICAS_2026-11-25.md` | `__tests__/offline.test.ts`, `__tests__/conexion.test.ts`, `__tests__/colaOffline.test.ts` | Caché cifrada, cola ordenada, reintentos, 4xx descartadas y reconexión cubiertos; falta prueba con red física apagada | PR del cierre autónomo |
+| T43 · CI/CD | PARCIAL | `.github/workflows/ci.yml` | CI de PR #39, #40 y #41 | NetInfo, tipos, lint, 110 pruebas y export web en verde; CD/EAS bloqueado por cuenta Expo | PRs #39-#41 mergeados |
