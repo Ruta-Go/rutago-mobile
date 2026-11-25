@@ -70,6 +70,10 @@ export async function autenticarConBiometria(): Promise<void> {
   });
 
   if (!resultado.success) {
+    const codigo = 'error' in resultado ? String(resultado.error) : '';
+    if (codigo.includes('cancel')) {
+      throw new Error('La autenticación biométrica fue cancelada.');
+    }
     throw new Error('No se pudo verificar tu identidad.');
   }
 }

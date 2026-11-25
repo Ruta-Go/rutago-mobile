@@ -66,4 +66,25 @@ describe('GPS en segundo plano', () => {
     expect(detener).toHaveBeenCalledWith(TAREA_GPS_FONDO);
     expect(borrar).toHaveBeenCalledWith('rutago_gps_vehiculo');
   });
+
+  it('no inicia si el permiso de fondo es denegado', async () => {
+    permiso.mockResolvedValue({ status: 'denied' });
+
+    const resultado = await iniciarGpsFondo(12, 34, 2);
+
+    expect(resultado).toBe(false);
+    expect(iniciar).not.toHaveBeenCalled();
+    expect(guardar).not.toHaveBeenCalled();
+  });
+
+  it('no intenta detener si la tarea no está activa', async () => {
+    consultar.mockResolvedValue(false);
+
+    await detenerGpsFondo();
+
+    expect(detener).not.toHaveBeenCalled();
+    expect(borrar).toHaveBeenCalledWith('rutago_gps_vehiculo');
+    expect(borrar).toHaveBeenCalledWith('rutago_gps_viaje');
+    expect(borrar).toHaveBeenCalledWith('rutago_gps_estado');
+  });
 });

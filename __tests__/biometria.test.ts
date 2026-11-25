@@ -81,4 +81,33 @@ describe('biometria', () => {
       'No se pudo verificar tu identidad.',
     );
   });
+
+  it('reporta cancelación cuando el usuario cancela la biometría', async () => {
+    supportedAuthenticationTypesAsync.mockResolvedValue([FACIAL]);
+    authenticateAsync.mockResolvedValue({ success: false, error: 'user_cancel' });
+
+    await expect(autenticarConBiometria()).rejects.toThrow(
+      'La autenticación biométrica fue cancelada.',
+    );
+  });
+
+  it('no permite autenticar si no hay biometría disponible', async () => {
+    hasHardwareAsync.mockResolvedValue(false);
+    supportedAuthenticationTypesAsync.mockResolvedValue([]);
+
+    await expect(autenticarConBiometria()).rejects.toThrow(
+      'La biometría no está disponible en este dispositivo.',
+    );
+    expect(authenticateAsync).not.toHaveBeenCalled();
+  });
+
+  it('devuelve sin biometría cuando el módulo lanza error', async () => {
+    hasHardwareAsync.mockRejectedValue(new Error('módulo no disponible'));
+
+    await expect(obtenerEstadoBiometria()).resolves.toEqual({
+      disponible: false,
+      tipo: 'ninguna',
+      etiqueta: '',
+    });
+  });
 });

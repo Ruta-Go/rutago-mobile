@@ -280,4 +280,23 @@ describe('servicio de notificaciones', () => {
       expect.objectContaining({ token: 'ExpoPushToken[demo]' }),
     );
   });
+
+  it('no envió token vacío al backend', async () => {
+    const enviado = await enviarTokenAlBackend('');
+
+    expect(enviado).toBe(false);
+    expect(publicar).not.toHaveBeenCalled();
+  });
+
+  it('maneja fallo al obtener token de Expo sin romper', async () => {
+    configuracion.expoConfig.extra.eas.projectId = 'id-desde-config';
+    token.mockRejectedValueOnce(new Error('token error'));
+    const aviso = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const resultado = await registrarNotificaciones();
+
+    expect(resultado).toBeNull();
+    expect(aviso).toHaveBeenCalled();
+    aviso.mockRestore();
+  });
 });
