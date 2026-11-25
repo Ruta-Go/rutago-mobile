@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -10,6 +10,7 @@ import { Stack, router } from 'expo-router';
 
 import { ROLES, esRolValido, nombreRol } from '@/constants/roles';
 import { useRealtime } from '@/hooks/useRealtime';
+import { useResponsivo } from '@/hooks/useResponsivo';
 import { useSesion } from '@/hooks/useSesion';
 import { api, extraerLista } from '@/services/api';
 
@@ -140,6 +141,7 @@ export default function DashboardScreen() {
   const { usuario, cerrarSesion } = useSesion();
   const rolId = Number(usuario?.rolId ?? usuario?.rol?.id);
   const rolValido = esRolValido(rolId);
+  const diseno = useResponsivo();
   const [noLeidas, setNoLeidas] = useState(0);
 
   const cargarNoLeidas = useCallback(async () => {
@@ -166,15 +168,21 @@ export default function DashboardScreen() {
     }
   });
 
-  let opciones: Opcion[] = [];
-  if (rolId === ROLES.PASAJERO) opciones = OPCIONES_PASAJERO;
-  else if (rolId === ROLES.CONDUCTOR) opciones = OPCIONES_CONDUCTOR;
-  else if (rolId === ROLES.ADMINISTRADOR) opciones = OPCIONES_GESTION;
+  const opciones = useMemo(() => {
+    if (rolId === ROLES.PASAJERO) return OPCIONES_PASAJERO;
+    if (rolId === ROLES.CONDUCTOR) return OPCIONES_CONDUCTOR;
+    if (rolId === ROLES.ADMINISTRADOR) return OPCIONES_GESTION;
+    return [] as Opcion[];
+  }, [rolId]);
 
-  const opcionesVisibles = opciones.map((opcion) =>
-    opcion.ruta === '/notificaciones' && noLeidas > 0
-      ? { ...opcion, badge: noLeidas }
-      : opcion,
+  const opcionesVisibles = useMemo(
+    () =>
+      opciones.map((opcion) =>
+        opcion.ruta === '/notificaciones' && noLeidas > 0
+          ? { ...opcion, badge: noLeidas }
+          : opcion,
+      ),
+    [opciones, noLeidas],
   );
 
   const manejarOpcion = (opcion: Opcion) => {
@@ -187,11 +195,19 @@ export default function DashboardScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.contenido}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.contenido,
+          {
+            padding: diseno.padding,
+            paddingTop: diseno.esCompacto ? 40 : 65,
+          },
+        ]}>
         <View style={styles.encabezado}>
           <Text style={styles.marca}>RUTA GO</Text>
           <Text style={styles.acento}>━━━━━━━━</Text>
-          <Text style={styles.bienvenida}>
+          <Text style={[styles.bienvenida, { fontSize: diseno.tamanoTitulo }]}>
             ¡Hola{usuario?.nombres ? `, ${usuario.nombres}` : ''}!
           </Text>
           <Text style={styles.rol}>{rolValido ? nombreRol(rolId) : 'Rol no reconocido'}</Text>
@@ -216,9 +232,13 @@ export default function DashboardScreen() {
         {opcionesVisibles.map((opcion) => (
           <Pressable
             key={opcion.titulo}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel={`${opcion.titulo}. ${opcion.descripcion}`}
             style={({ pressed }) => [
               styles.opcion,
               pressed && styles.opcionPresionada,
+              diseno.esCompacto && styles.opcionCompacta,
             ]}
             onPress={() => manejarOpcion(opcion)}>
             <View style={styles.icono}>
@@ -327,6 +347,10 @@ const styles = StyleSheet.create({
   },
   opcionPresionada: {
     backgroundColor: '#E6F4EC',
+  },
+  opcionCompacta: {
+    padding: 12,
+    marginBottom: 10,
   },
   icono: {
     width: 48,

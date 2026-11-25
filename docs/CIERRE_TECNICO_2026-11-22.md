@@ -80,3 +80,32 @@ El binario nativo corrupto se restauró desde el tarball oficial del registro np
 | BLOQUEADO | 1 |
 
 Este registro se actualiza después de cada bloque integrado.
+
+## Actualización autónoma del 24 y 25 de noviembre de 2026
+
+### Sprint 4 / Tarea 25 — ConfirmModal, Skeleton y accesibilidad
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo ejecutado:** `ConfirmModal` reutiliza `Modal` con verde `#087A35`, amarillo `#FFD900` y blanco `#FFFFFF`; `Modal` anuncia `alert` y `accessibilityViewIsModal`; `Skeleton`/`SkeletonLista` anuncian `progressbar` con `busy`; `gestion.tsx` usa ambos componentes reales.
+- **Pruebas:** 15 suites / 73 pruebas OK en el bloque; `tsc` y `lint` limpios.
+- **Commit / PR:** `f58c315`, `3e5dfc6` · PR móvil `#39` mergeado (`07931e3`).
+
+### Sprint 3 / Tarea 18 — Token push consolidado
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo ejecutado:** el commit `4923c25` quedó integrado en `feature-ASEG1999`; el PR `#38` se cerró con nota de consolidación.
+- **Commit / PR:** `6abef4f` · PR `#39` mergeado.
+
+### Sprint 3 — Notificaciones en vivo y navegación desde `origin/dev`
+
+- **Estado anterior:** IMPLEMENTADO en rama ajena.
+- **Trabajo ejecutado:** siete commits de `origin/dev` recuperados sin crear ramas: avisos en vivo, detalle de viaje, destinatarios por correo, contador de no leídas y deduplicación del toque inicial. Se conservó `enviarTokenAlBackend` y se añadió el alias `escucharTapPush`.
+- **Pruebas:** 19 suites / 106 pruebas OK; `tsc` y `lint` limpios.
+- **Commit / PR:** `667756c` · PR `#40` mergeado (`016b49e`).
+
+### Sprint 4 / Tareas 28 y 29 — Responsive, accesibilidad y rendimiento
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo ejecutado:** hook `useResponsivo` con decisiones puras y fallback seguro; dashboard adapta espaciado y tipografía, memoiza opciones por rol y etiqueta sus botones.
+- **Pruebas:** 20 suites / 110 pruebas OK; `tsc` y `lint` limpios.
+- **Commit / PR:** `5c82bc4` · PR del cierre autónomo.
