@@ -33,12 +33,6 @@ function mensajeError(error: unknown): string {
   return 'No se pudo completar la operación.';
 }
 
-/**
- * Centro de avisos con el diseño de Figma («Móvil / Notificaciones»): cada
- * aviso muestra un círculo de color según lo ocurrido, el tiempo relativo y
- * un punto verde si no se ha leído. Al tocarlo se marca como leído y, si
- * pertenece a un viaje, se abre su detalle.
- */
 export default function NotificacionesScreen() {
   const { usuario } = useSesion();
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
@@ -69,8 +63,6 @@ export default function NotificacionesScreen() {
     void Promise.resolve().then(cargar);
   }, [cargar]);
 
-  // La notificación del celular la crea GestorNotificaciones en cualquier
-  // pantalla; aquí sólo recargo la lista cuando llega o se lee un aviso.
   useRealtime((evento) => {
     if (
       evento.tipo === 'notificacion' ||
@@ -80,7 +72,6 @@ export default function NotificacionesScreen() {
     }
   });
 
-  /** Marqué la lectura en el servidor; sin red queda en la cola y se reenvía sola. */
   const marcarLeida = async (notificacion: Notificacion) => {
     setNotificaciones((actuales) =>
       actuales.map((n) => (n.id === notificacion.id ? { ...n, leida: true } : n)),

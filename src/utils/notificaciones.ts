@@ -1,7 +1,6 @@
 import type { Notificacion } from '@/types/rutago';
 import { ESTADO_VIAJE } from '@/utils/viajes';
 
-/** Colores del círculo de cada aviso, tomados del diseño de Figma (Notificación push). */
 export const COLORES_AVISO = {
   azul: '#2563EB',
   verde: '#087A35',
@@ -19,7 +18,6 @@ const COLOR_POR_ESTADO: Record<number, string> = {
   [ESTADO_VIAJE.CANCELADO]: COLORES_AVISO.rojo,
 };
 
-/** Elegí el color según lo que pasó: estado del viaje, pasajero nuevo o aviso del administrador. */
 export function colorDeNotificacion(notificacion: Notificacion): string {
   if (notificacion.tipo === 'viaje_estado') {
     const estadoId = Number(notificacion.datos?.estadoId);
@@ -30,7 +28,6 @@ export function colorDeNotificacion(notificacion: Notificacion): string {
   return COLORES_AVISO.verde;
 }
 
-/** Viaje al que pertenece el aviso, venga en la columna viajeId o en sus datos. */
 export function viajeDeNotificacion(notificacion: Notificacion): number | null {
   const id = Number(notificacion.viajeId ?? notificacion.datos?.viajeId);
   return Number.isInteger(id) && id > 0 ? id : null;
@@ -42,11 +39,6 @@ export type AvisoLocal = {
   datos: { viajeId: number } | { ruta: '/notificaciones' };
 };
 
-/**
- * Convertí el evento «notificacion» del WebSocket en el contenido de la
- * notificación del sistema. Siempre adjunto datos: con viaje, su id; sin
- * viaje, la ruta del centro de avisos, para que el toque sepa a dónde ir.
- */
 export function avisoLocalDesdeEvento(
   payload: Record<string, unknown> | null | undefined,
 ): AvisoLocal {
@@ -68,7 +60,6 @@ export function avisoLocalDesdeEvento(
   };
 }
 
-/** Mostré el tiempo como en el diseño: "hace 2 min", "hace 1 h", "hace 3 d". */
 export function tiempoRelativo(valor?: string, ahora: Date = new Date()): string {
   if (!valor) return '';
   const fecha = new Date(valor);

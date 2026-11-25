@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-/** Verifiqué los avisos locales, los manejadores del sistema y el contador de pendientes. */
+/** Verifiqué que los avisos del backend se conviertan en notificaciones locales reales. */
 jest.mock('expo-notifications', () => ({
   DEFAULT_ACTION_IDENTIFIER: 'expo.modules.notifications.actions.DEFAULT',
   setNotificationHandler: jest.fn(),

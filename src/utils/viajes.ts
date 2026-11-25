@@ -22,11 +22,6 @@ export function nombreEstado(viaje: Viaje): string {
   );
 }
 
-/**
- * Nombre legible del estado para mostrar al usuario. El backend devuelve
- * códigos como «EN_CURSO»; priorizo el nombre en español según el id y, si
- * no lo conozco, convierto el código a «En curso».
- */
 export function etiquetaEstado(viaje: Viaje): string {
   const conocido = NOMBRES_ESTADO[Number(viaje.estado?.id)];
   if (conocido) return conocido;

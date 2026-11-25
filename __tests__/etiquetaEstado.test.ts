@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-/** Verifiqué que el Detalle de viaje muestre el estado legible y no el código del backend. */
 import { etiquetaEstado } from '@/utils/viajes';
 
 describe('etiqueta del estado del viaje', () => {

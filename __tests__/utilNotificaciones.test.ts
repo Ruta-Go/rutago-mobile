@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-/** Verifiqué el color, el viaje y el tiempo relativo que pide el diseño de Notificaciones. */
 import type { Notificacion } from '@/types/rutago';
 import {
   avisoLocalDesdeEvento,

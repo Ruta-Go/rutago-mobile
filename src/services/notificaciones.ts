@@ -38,8 +38,6 @@ export async function registrarNotificaciones(): Promise<string | null> {
       ?.projectId;
   if (!projectId) return null;
 
-  // Expo Go en Android ya no entrega tokens de push remoto (SDK 53+): no lo
-  // pido para no llenar los registros de errores; las locales siguen igual.
   const enExpoGo =
     Constants.executionEnvironment === ExecutionEnvironment.StoreClient ||
     Constants.appOwnership === 'expo';
@@ -68,11 +66,6 @@ const DESTINOS_PERMITIDOS: DestinoPush[] = [
   '/dashboard',
 ];
 
-/**
- * Decidí a qué pantalla lleva una notificación según sus datos: si trae un
- * viaje válido abro su detalle; si trae una ruta conocida la respeto y si no,
- * caigo en el centro de notificaciones. Nunca navego a rutas arbitrarias.
- */
 export function destinoDeNotificacion(datos: unknown): DestinoPush {
   const registro =
     datos && typeof datos === 'object' ? (datos as Record<string, unknown>) : {};
@@ -87,25 +80,16 @@ export function destinoDeNotificacion(datos: unknown): DestinoPush {
 }
 
 type ManejadoresNotificacion = {
-  /** Llega una notificación con la app abierta (notificationReceived). */
   alRecibir?: (notificacion: Notificaciones.Notification) => void;
-  /** El usuario tocó una notificación (notificationResponse). */
   alTocar: (destino: DestinoPush) => void;
 };
 
-/**
- * Instalé los dos manejadores del sistema: notificación recibida e interacción
- * del usuario. También atiendo el toque que abrió la app estando cerrada, que
- * ocurre antes de que exista el listener.
- */
 export function escucharNotificaciones({
   alRecibir,
   alTocar,
 }: ManejadoresNotificacion): () => void {
   if (Platform.OS === 'web') return () => {};
 
-  // El toque que abrió la app puede llegar por getLastNotificationResponse y
-  // también por el listener: recuerdo el último atendido para no navegar dos veces.
   let ultimoAtendido: string | null = null;
 
   const atenderRespuesta = (respuesta: Notificaciones.NotificationResponse) => {
@@ -138,10 +122,6 @@ export function escucharNotificaciones({
   };
 }
 
-/**
- * Pedí al backend el total real de avisos sin leer y lo puse como contador del
- * ícono de la app. Sin red no invento un número: devuelvo null y dejo el último.
- */
 export async function sincronizarContador(): Promise<number | null> {
   if (Platform.OS === 'web') return null;
   try {
@@ -158,13 +138,11 @@ export async function sincronizarContador(): Promise<number | null> {
   }
 }
 
-/** Borré el contador del ícono al cerrar sesión para no dejar avisos de otra cuenta. */
 export async function limpiarContador(): Promise<void> {
   if (Platform.OS === 'web') return;
   try {
     await Notificaciones.setBadgeCountAsync(0);
   } catch {
-    // Sin permiso de notificaciones el sistema rechaza el contador: no es un error de la app.
   }
 }
 
@@ -175,7 +153,6 @@ export async function mostrarNotificacionLocal(
   datos?: Record<string, unknown>,
 ): Promise<void> {
   await Notificaciones.scheduleNotificationAsync({
-    // Guardé los datos (por ejemplo viajeId) para que al tocarla se abra ese viaje.
     content: datos
       ? { title: titulo, body: cuerpo, sound: true, data: datos }
       : { title: titulo, body: cuerpo, sound: true },

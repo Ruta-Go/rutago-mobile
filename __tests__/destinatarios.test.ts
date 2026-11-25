@@ -1,5 +1,4 @@
 /// <reference types="jest" />
-/** Verifiqué que el selector de destinatarios muestre correos ordenados y se pueda buscar. */
 import {
   destinatariosDesdeUsuarios,
   filtrarDestinatarios,

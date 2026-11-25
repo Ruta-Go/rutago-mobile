@@ -62,11 +62,6 @@ function Campo({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   );
 }
 
-/**
- * Detalle de un viaje (diseño Figma «Móvil / Detalle de viaje»). Es el destino
- * de los avisos: al tocar una notificación con viajeId se abre esta pantalla.
- * Sólo muestra datos reales del backend; lo que no viene se indica como tal.
- */
 export default function DetalleViajeScreen() {
   const params = useLocalSearchParams<{ viajeId?: string }>();
   const viajeId = Number(params.viajeId);

@@ -15,7 +15,6 @@ type UsuarioCrudo = {
 
 const texto = (valor: unknown) => (typeof valor === 'string' ? valor.trim() : '');
 
-/** Quité tildes y mayúsculas para que «maria» encuentre a «María». */
 function normalizar(valor: string): string {
   return valor
     .normalize('NFD')
@@ -23,11 +22,6 @@ function normalizar(valor: string): string {
     .toLowerCase();
 }
 
-/**
- * Convertí la lista de /usuarios en destinatarios identificados por correo,
- * ordenados alfabéticamente. Descarto los que no tienen id o correo: sin
- * correo el administrador no puede saber a quién le envía el aviso.
- */
 export function destinatariosDesdeUsuarios(usuarios: unknown[]): Destinatario[] {
   return usuarios
     .map((crudo) => {
@@ -48,7 +42,6 @@ export function destinatariosDesdeUsuarios(usuarios: unknown[]): Destinatario[] 
     .sort((a, b) => a.correo.localeCompare(b.correo, 'es', { sensitivity: 'base' }));
 }
 
-/** Filtré por correo o nombre, sin importar tildes ni mayúsculas. */
 export function filtrarDestinatarios(
   destinatarios: Destinatario[],
   busqueda: string,
