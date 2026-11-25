@@ -162,3 +162,12 @@ git push origin feature-ASEG1999
 | Inventario de bloqueos externos | Terminado | `docs/BLOQUEOS_EXTERNOS.md` | Revisión de dependencias externas | Documentados SSH, Expo, push, correo, JWT, dominio, PostGIS, Trello y tiendas | `c542f73`, PR `#32` mergeado |
 | CI backend | Parcialmente realizado | - | Workflows `CI Backend RutaGo` y `Deploy Backend RutaGo` | CI verde en run `45083225867`; Deploy falla por secretos SSH ausentes, fallo preexistente | - |
 | Verificación física en Expo Go | Bloqueado | - | - | Sin iPhone/emulador en este entorno | - |
+
+## Cierre autónomo 2026-11-24 · T25 (confirmación, carga y accesibilidad)
+
+| Tarea | Estado | Archivos modificados | Pruebas ejecutadas | Resultado | Commit / PR |
+| --- | --- | --- | --- | --- | --- |
+| T25 · `ConfirmModal` con identidad oficial y compatibilidad | TERMINADO | `src/components/ui/ConfirmModal.tsx`, `src/components/ui/Modal.tsx` | `npm test`, `npx tsc --noEmit`, `npm run lint` | Botón principal verde `#087A35` (variante `primario`), acento amarillo `#FFD900`, tarjeta blanca `#FFFFFF`; `accessibilityRole="alert"` y `accessibilityViewIsModal`; firma compatible con pantallas existentes | `f58c315` · PR del cierre autónomo |
+| T25 · `Skeleton` y `SkeletonLista` exportados | TERMINADO | `src/components/ui/Skeleton.tsx`, `src/components/ui/index.ts` | Ídem | Pulso animado sin datos fingidos, `accessibilityRole="progressbar"` y `accessibilityState.busy`; exports públicos desde `@/components/ui` | `f58c315` |
+| T25 · Uso real en gestión de registros | TERMINADO | `src/app/gestion.tsx` | Ídem | `Alert.alert` destructivo sustituido por `ConfirmModal`; `ActivityIndicator` sustituido por `SkeletonLista` durante la consulta | `f58c315` |
+| T25 · Pruebas automáticas de UI | TERMINADO | `__tests__/uiConfirmacionCarga.test.tsx` | `npm test` | 15 suites / 73 pruebas OK; cubre acciones, rol de alerta, rol de progreso y 6 bloques de lista | `f58c315` |
