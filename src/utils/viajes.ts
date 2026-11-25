@@ -22,6 +22,13 @@ export function nombreEstado(viaje: Viaje): string {
   );
 }
 
+export function etiquetaEstado(viaje: Viaje): string {
+  const conocido = NOMBRES_ESTADO[Number(viaje.estado?.id)];
+  if (conocido) return conocido;
+  const codigo = viaje.estado?.nombre?.replace(/_/g, ' ').trim().toLowerCase();
+  return codigo ? codigo.charAt(0).toUpperCase() + codigo.slice(1) : 'Sin estado';
+}
+
 export function idEstado(viaje: Viaje): number | null {
   return viaje.estado?.id ?? null;
 }
