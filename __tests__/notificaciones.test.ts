@@ -16,11 +16,17 @@ jest.mock('expo-constants', () => ({
   },
 }));
 
+jest.mock('@/services/api', () => ({
+  api: { post: jest.fn() },
+}));
+
 import Constants from 'expo-constants';
 import * as Notificaciones from 'expo-notifications';
 
+import { api } from '@/services/api';
 import {
   escucharTapPush,
+  enviarTokenAlBackend,
   mostrarNotificacionLocal,
   registrarNotificaciones,
 } from '@/services/notificaciones';
@@ -30,6 +36,7 @@ const permisos = Notificaciones.getPermissionsAsync as jest.Mock;
 const token = Notificaciones.getExpoPushTokenAsync as jest.Mock;
 const escuchar =
   Notificaciones.addNotificationResponseReceivedListener as jest.Mock;
+const publicar = api.post as jest.Mock;
 const configuracion = Constants as unknown as {
   expoConfig: { extra: { eas: { projectId?: string } } };
 };
@@ -40,6 +47,7 @@ describe('servicio de notificaciones', () => {
     configuracion.expoConfig.extra.eas.projectId = undefined;
     permisos.mockResolvedValue({ granted: true });
     token.mockResolvedValue({ data: 'ExpoPushToken[demo]' });
+    publicar.mockResolvedValue({ data: { success: true } });
     escuchar.mockReturnValue({ remove: jest.fn() });
   });
 
@@ -85,5 +93,34 @@ describe('servicio de notificaciones', () => {
 
     expect(alTocar).toHaveBeenCalledWith('/mis-viajes');
     quitar();
+  });
+
+  it('envió el token real al backend con la plataforma correcta', async () => {
+    const enviado = await enviarTokenAlBackend('ExpoPushToken[abc]');
+
+    expect(enviado).toBe(true);
+    expect(publicar).toHaveBeenCalledWith('/notificaciones/push-token', {
+      token: 'ExpoPushToken[abc]',
+      plataforma: expect.stringMatching(/^(ios|android)$/),
+    });
+  });
+
+  it('no rompió la app si el backend rechazó el token', async () => {
+    publicar.mockRejectedValueOnce(new Error('RED_CAIDA'));
+
+    const enviado = await enviarTokenAlBackend('ExpoPushToken[abc]');
+
+    expect(enviado).toBe(false);
+  });
+
+  it('registró el token en el backend al obtenerlo de Expo', async () => {
+    configuracion.expoConfig.extra.eas.projectId = 'id-desde-config';
+
+    await registrarNotificaciones();
+
+    expect(publicar).toHaveBeenCalledWith(
+      '/notificaciones/push-token',
+      expect.objectContaining({ token: 'ExpoPushToken[demo]' }),
+    );
   });
 });
