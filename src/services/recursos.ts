@@ -59,7 +59,7 @@ export async function listarRecurso(
   const respuesta = await api.get<unknown>(endpoint, {
     params: {
       paginaActual: 1,
-      registrosPorPagina: 200,
+      registrosPorPagina: 100,
       ...params,
     },
   });

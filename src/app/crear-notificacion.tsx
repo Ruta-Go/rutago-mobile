@@ -17,7 +17,12 @@ import { volverSeguro } from '@/utils/navegacion';
 import { ROLES } from '@/constants/roles';
 import { useSesion } from '@/hooks/useSesion';
 import { api, extraerDatos } from '@/services/api';
-import { opcionesRemotas } from '@/services/recursos';
+import { listarRecurso, opcionesRemotas } from '@/services/recursos';
+import {
+  destinatariosDesdeUsuarios,
+  filtrarDestinatarios,
+  type Destinatario,
+} from '@/utils/destinatarios';
 
 type Opcion = { id: number; etiqueta: string };
 
@@ -35,7 +40,8 @@ function mensajeError(error: unknown): string {
 export default function CrearNotificacionScreen() {
   const { usuario } = useSesion();
   const rolId = Number(usuario?.rolId ?? usuario?.rol?.id);
-  const [usuarios, setUsuarios] = useState<Opcion[]>([]);
+  const [usuarios, setUsuarios] = useState<Destinatario[]>([]);
+  const [busqueda, setBusqueda] = useState('');
   const [viajes, setViajes] = useState<Opcion[]>([]);
   const [usuarioId, setUsuarioId] = useState<number | null>(null);
   const [viajeId, setViajeId] = useState<number | null>(null);
@@ -48,10 +54,10 @@ export default function CrearNotificacionScreen() {
   const cargar = useCallback(async () => {
     try {
       const [listaUsuarios, listaViajes] = await Promise.all([
-        opcionesRemotas('/usuarios', ['nombres', 'apellidos', 'correo']),
+        listarRecurso('/usuarios'),
         opcionesRemotas('/viajes', ['id']),
       ]);
-      setUsuarios(listaUsuarios);
+      setUsuarios(destinatariosDesdeUsuarios(listaUsuarios.items));
       setViajes(listaViajes);
     } catch (error) {
       console.error('Error al cargar destinatarios:', mensajeError(error));
@@ -148,18 +154,39 @@ export default function CrearNotificacionScreen() {
         ) : (
           <View style={styles.formulario}>
             <Text style={styles.etiqueta}>Usuario destinatario *</Text>
-            <View style={styles.opciones}>
-              {usuarios.map((opcion) => (
-                <Pressable
-                  key={opcion.id}
-                  style={[
-                    styles.opcion,
-                    usuarioId === opcion.id && styles.opcionSeleccionada,
-                  ]}
-                  onPress={() => setUsuarioId(opcion.id)}>
-                  <Text style={styles.textoOpcion}>{opcion.etiqueta}</Text>
-                </Pressable>
-              ))}
+            <TextInput
+              style={styles.input}
+              value={busqueda}
+              onChangeText={setBusqueda}
+              placeholder="Buscar por correo o nombre"
+              placeholderTextColor="#9CA3AF"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              accessibilityLabel="Buscar destinatario"
+            />
+            <View style={styles.listaDestinatarios}>
+              {filtrarDestinatarios(usuarios, busqueda).map((destinatario) => {
+                const seleccionado = usuarioId === destinatario.id;
+                return (
+                  <Pressable
+                    key={destinatario.id}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: seleccionado }}
+                    style={[styles.destinatario, seleccionado && styles.opcionSeleccionada]}
+                    onPress={() => setUsuarioId(destinatario.id)}>
+                    <Text style={styles.correo}>{destinatario.correo}</Text>
+                    {destinatario.nombre || destinatario.rol ? (
+                      <Text style={styles.detalleDestinatario}>
+                        {[destinatario.nombre, destinatario.rol].filter(Boolean).join(' · ')}
+                      </Text>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+              {filtrarDestinatarios(usuarios, busqueda).length === 0 && (
+                <Text style={styles.ayuda}>Ningún usuario coincide con la búsqueda.</Text>
+              )}
             </View>
 
             <Text style={styles.etiqueta}>Viaje relacionado (opcional)</Text>
@@ -259,7 +286,17 @@ const styles = StyleSheet.create({
   },
   opcionSeleccionada: { borderColor: '#087A35', backgroundColor: '#E6F4EC' },
   textoOpcion: { color: '#374151', fontSize: 13 },
-  textoOpcionSeleccionado: { color: '#FFFFFF', fontWeight: '800' },
+  textoOpcionSeleccionado: { color: '#087A35', fontWeight: '800' },
+  listaDestinatarios: { marginTop: 10, gap: 8 },
+  destinatario: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  correo: { color: '#1F2937', fontSize: 14, fontWeight: '700' },
+  detalleDestinatario: { color: '#6B7280', fontSize: 12, marginTop: 2 },
   input: {
     borderWidth: 1,
     borderColor: '#D1D5DB',

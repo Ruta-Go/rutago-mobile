@@ -15,7 +15,7 @@ export async function listarHorariosPorRuta(rutaId: number): Promise<Horario[]> 
 
 export async function listarComunas(): Promise<Comuna[]> {
   const respuesta = await api.get<unknown>('/comunas', {
-    params: { paginaActual: 1, registrosPorPagina: 200 },
+    params: { paginaActual: 1, registrosPorPagina: 100 },
   });
   return extraerLista<Comuna>(respuesta.data);
 }
