@@ -109,3 +109,7 @@ Este registro se actualiza después de cada bloque integrado.
 - **Trabajo ejecutado:** hook `useResponsivo` con decisiones puras y fallback seguro; dashboard adapta espaciado y tipografía, memoiza opciones por rol y etiqueta sus botones.
 - **Pruebas:** 20 suites / 110 pruebas OK; `tsc` y `lint` limpios.
 - **Commit / PR:** `5c82bc4` · PR del cierre autónomo.
+
+## Entrega final
+
+El cierre único, el estado de las 43 tareas, los PRs mergeados, las pruebas reales, los bloqueos y las actividades pendientes de Santiago están en `docs/INFORME_CIERRE_AUTONOMO.md`.
