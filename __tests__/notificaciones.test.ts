@@ -15,6 +15,7 @@ jest.mock('expo-notifications', () => ({
 }));
 
 jest.mock('expo-constants', () => ({
+  ExecutionEnvironment: { Bare: 'bare', Standalone: 'standalone', StoreClient: 'storeClient' },
   __esModule: true,
   default: {
     expoConfig: { extra: { eas: { projectId: undefined as string | undefined } } },

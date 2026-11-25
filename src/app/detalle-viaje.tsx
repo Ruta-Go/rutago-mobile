@@ -17,7 +17,7 @@ import { useSesion } from '@/hooks/useSesion';
 import { api, extraerDatos } from '@/services/api';
 import type { UsuarioResumen, Viaje } from '@/types/rutago';
 import { volverSeguro } from '@/utils/navegacion';
-import { ESTADO_VIAJE, idEstado, nombreEstado } from '@/utils/viajes';
+import { ESTADO_VIAJE, etiquetaEstado, idEstado } from '@/utils/viajes';
 
 function mensajeError(error: unknown): string {
   const err = error as AxiosError<{ message?: string }>;
@@ -181,7 +181,7 @@ export default function DetalleViajeScreen() {
 
         {!cargando && viaje && (
           <>
-            <Text style={styles.chip}>{nombreEstado(viaje)}</Text>
+            <Text style={styles.chip}>{etiquetaEstado(viaje)}</Text>
 
             <Campo etiqueta="Ruta" valor={textoRuta(viaje) ?? 'Sin ruta'} />
             <Campo
@@ -212,7 +212,7 @@ export default function DetalleViajeScreen() {
                   ? 'Viaje en curso · ubicación en vivo en Mis viajes'
                   : estado === ESTADO_VIAJE.ACEPTADO
                     ? 'Conductor asignado · esperando la salida'
-                    : nombreEstado(viaje)}
+                    : etiquetaEstado(viaje)}
               </Text>
             </View>
 

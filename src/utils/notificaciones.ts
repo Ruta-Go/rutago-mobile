@@ -36,6 +36,38 @@ export function viajeDeNotificacion(notificacion: Notificacion): number | null {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
+export type AvisoLocal = {
+  titulo: string;
+  cuerpo: string;
+  datos: { viajeId: number } | { ruta: '/notificaciones' };
+};
+
+/**
+ * Convertí el evento «notificacion» del WebSocket en el contenido de la
+ * notificación del sistema. Siempre adjunto datos: con viaje, su id; sin
+ * viaje, la ruta del centro de avisos, para que el toque sepa a dónde ir.
+ */
+export function avisoLocalDesdeEvento(
+  payload: Record<string, unknown> | null | undefined,
+): AvisoLocal {
+  const datos = payload ?? {};
+  const viajeId = Number(datos.viajeId);
+  return {
+    titulo:
+      typeof datos.titulo === 'string' && datos.titulo.trim()
+        ? datos.titulo
+        : 'Nueva notificación',
+    cuerpo:
+      typeof datos.mensaje === 'string' && datos.mensaje.trim()
+        ? datos.mensaje
+        : 'Tienes un aviso real de RutaGo.',
+    datos:
+      Number.isInteger(viajeId) && viajeId > 0
+        ? { viajeId }
+        : { ruta: '/notificaciones' },
+  };
+}
+
 /** Mostré el tiempo como en el diseño: "hace 2 min", "hace 1 h", "hace 3 d". */
 export function tiempoRelativo(valor?: string, ahora: Date = new Date()): string {
   if (!valor) return '';

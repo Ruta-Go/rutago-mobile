@@ -2,6 +2,7 @@
 /** Verifiqué el color, el viaje y el tiempo relativo que pide el diseño de Notificaciones. */
 import type { Notificacion } from '@/types/rutago';
 import {
+  avisoLocalDesdeEvento,
   COLORES_AVISO,
   colorDeNotificacion,
   tiempoRelativo,
@@ -59,5 +60,27 @@ describe('tiempo relativo', () => {
   it('no inventó un tiempo con fechas vacías o inválidas', () => {
     expect(tiempoRelativo(undefined, ahora)).toBe('');
     expect(tiempoRelativo('no-es-fecha', ahora)).toBe('');
+  });
+});
+
+describe('aviso local desde el WebSocket', () => {
+  it('adjuntó el viaje cuando el evento lo trae', () => {
+    expect(
+      avisoLocalDesdeEvento({ titulo: 'Tu viaje', mensaje: 'En camino', viajeId: 3 }),
+    ).toEqual({ titulo: 'Tu viaje', cuerpo: 'En camino', datos: { viajeId: 3 } });
+  });
+
+  it('adjuntó la ruta de avisos cuando no hay viaje', () => {
+    expect(avisoLocalDesdeEvento({ titulo: 'Recordatorio', mensaje: 'Hola' }).datos).toEqual({
+      ruta: '/notificaciones',
+    });
+  });
+
+  it('usó textos por defecto si el evento viene incompleto', () => {
+    expect(avisoLocalDesdeEvento(null)).toEqual({
+      titulo: 'Nueva notificación',
+      cuerpo: 'Tienes un aviso real de RutaGo.',
+      datos: { ruta: '/notificaciones' },
+    });
   });
 });

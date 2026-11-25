@@ -17,10 +17,6 @@ import { useSesion } from '@/hooks/useSesion';
 import { api, extraerLista } from '@/services/api';
 import { mutarConCola } from '@/services/colaOffline';
 import { obtenerConCache } from '@/services/offline';
-import {
-  mostrarNotificacionLocal,
-  registrarNotificaciones,
-} from '@/services/notificaciones';
 import type { Notificacion } from '@/types/rutago';
 import {
   colorDeNotificacion,
@@ -73,27 +69,9 @@ export default function NotificacionesScreen() {
     void Promise.resolve().then(cargar);
   }, [cargar]);
 
-  // Preparé permisos y token al abrir el centro de notificaciones, sin pedirlos en el arranque.
-  useEffect(() => {
-    void registrarNotificaciones();
-  }, []);
-
+  // La notificación del celular la crea GestorNotificaciones en cualquier
+  // pantalla; aquí sólo recargo la lista cuando llega o se lee un aviso.
   useRealtime((evento) => {
-    if (evento.tipo === 'notificacion') {
-      const datos = evento.payload ?? {};
-      const titulo =
-        typeof datos.titulo === 'string' ? datos.titulo : 'Nueva notificación';
-      const cuerpo =
-        typeof datos.mensaje === 'string'
-          ? datos.mensaje
-          : 'Tienes un aviso real de RutaGo.';
-      const viajeId = Number(datos.viajeId);
-      void mostrarNotificacionLocal(
-        titulo,
-        cuerpo,
-        Number.isInteger(viajeId) && viajeId > 0 ? { viajeId } : undefined,
-      );
-    }
     if (
       evento.tipo === 'notificacion' ||
       evento.tipo === 'notificacion_leida'

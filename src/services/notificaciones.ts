@@ -1,4 +1,4 @@
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Notificaciones from 'expo-notifications';
 import { Platform } from 'react-native';
 
@@ -37,6 +37,15 @@ export async function registrarNotificaciones(): Promise<string | null> {
     (Constants.expoConfig?.extra?.eas as { projectId?: string } | undefined)
       ?.projectId;
   if (!projectId) return null;
+
+  // Expo Go en Android ya no entrega tokens de push remoto (SDK 53+): no lo
+  // pido para no llenar los registros de errores; las locales siguen igual.
+  const enExpoGo =
+    Constants.executionEnvironment === ExecutionEnvironment.StoreClient ||
+    Constants.appOwnership === 'expo';
+  if (Platform.OS === 'android' && enExpoGo) {
+    return null;
+  }
 
   try {
     const token = await Notificaciones.getExpoPushTokenAsync({ projectId });
