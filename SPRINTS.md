@@ -171,3 +171,10 @@ git push origin feature-ASEG1999
 | T25 · `Skeleton` y `SkeletonLista` exportados | TERMINADO | `src/components/ui/Skeleton.tsx`, `src/components/ui/index.ts` | Ídem | Pulso animado sin datos fingidos, `accessibilityRole="progressbar"` y `accessibilityState.busy`; exports públicos desde `@/components/ui` | `f58c315` |
 | T25 · Uso real en gestión de registros | TERMINADO | `src/app/gestion.tsx` | Ídem | `Alert.alert` destructivo sustituido por `ConfirmModal`; `ActivityIndicator` sustituido por `SkeletonLista` durante la consulta | `f58c315` |
 | T25 · Pruebas automáticas de UI | TERMINADO | `__tests__/uiConfirmacionCarga.test.tsx` | `npm test` | 15 suites / 73 pruebas OK; cubre acciones, rol de alerta, rol de progreso y 6 bloques de lista | `f58c315` |
+
+## Cierre autónomo 2026-11-25 · T28 y T29 (responsive, accesibilidad y rendimiento)
+
+| Tarea | Estado | Archivos modificados | Pruebas ejecutadas | Resultado | Commit / PR |
+| --- | --- | --- | --- | --- | --- |
+| T28 · Decisiones responsivas por ancho | TERMINADO | `src/hooks/useResponsivo.ts`, `src/app/dashboard.tsx` | `npm test`, `npx tsc --noEmit`, `npm run lint` | Padding 16/24/40, cabecera 40/65 y saludo 23/27/30 según ancho; fallback 360 si la dimensión no es válida | `5c82bc4` · PR del cierre autónomo |
+| T29 · Accesibilidad y rendimiento del dashboard | TERMINADO | `src/app/dashboard.tsx`, `__tests__/responsive.test.ts` | Ídem | Botones con `accessibilityRole` y etiqueta descriptiva; listas memoizadas por rol; 20 suites / 110 pruebas OK | `5c82bc4` |
