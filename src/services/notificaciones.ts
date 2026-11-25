@@ -2,7 +2,28 @@ import Constants from 'expo-constants';
 import * as Notificaciones from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { api } from '@/services/api';
+
 let manejadorInstalado = false;
+
+/**
+ * Envié el token real al backend autenticado. Si falla el registro remoto no
+ * rompo la pantalla: las notificaciones locales y WebSocket siguen activas.
+ * Nunca imprimí el token completo en consola.
+ */
+export async function enviarTokenAlBackend(token: string): Promise<boolean> {
+  if (Platform.OS === 'web' || !token) return false;
+
+  const plataforma = Platform.OS === 'ios' ? 'ios' : 'android';
+  try {
+    await api.post('/notificaciones/push-token', { token, plataforma });
+    return true;
+  } catch (error) {
+    const mensaje = error instanceof Error ? error.message : 'error desconocido';
+    console.warn('[notificaciones] no se pudo registrar el token en el backend', mensaje);
+    return false;
+  }
+}
 
 /**
  * Registré permisos y el token público de Expo cuando hay proyecto configurado.
@@ -38,6 +59,7 @@ export async function registrarNotificaciones(): Promise<string | null> {
 
   try {
     const token = await Notificaciones.getExpoPushTokenAsync({ projectId });
+    await enviarTokenAlBackend(token.data);
     return token.data;
   } catch (error) {
     console.warn('[notificaciones] no se pudo obtener el token remoto', error);
