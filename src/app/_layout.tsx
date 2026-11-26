@@ -1,20 +1,20 @@
-import { useEffect } from 'react';
-import { Stack, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useFonts } from "expo-font";
+import { Stack, useRouter } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import { TabBarPorRol } from '@/components/navegacion/TabBarPorRol';
-import { ToastProvider } from '@/components/ui';
-import { ROLES } from '@/constants/roles';
-import { Colores } from '@/constants/tema';
-import { SesionProvider, useSesion } from '@/hooks/useSesion';
-import { iniciarSincronizacionAutomatica } from '@/services/colaOffline';
-import { FUENTES_ICONOS } from '@/services/fuentes';
-import { escucharTapPush } from '@/services/notificaciones';
+import { TabBarPorRol } from "@/components/navegacion/TabBarPorRol";
+import { ToastProvider } from "@/components/ui";
+import { ROLES } from "@/constants/roles";
+import { Colores } from "@/constants/tema";
+import { SesionProvider, useSesion } from "@/hooks/useSesion";
+import { useSincronizacionUniones } from "@/hooks/useSincronizacionUniones";
+import { iniciarSincronizacionAutomatica } from "@/services/colaOffline";
+import { FUENTES_ICONOS } from "@/services/fuentes";
+import { escucharTapPush } from "@/services/notificaciones";
 
-// Evito que iOS oculte el splash antes de que las fuentes de iconos estén listas.
 void SplashScreen.preventAutoHideAsync();
 
 function Navegador() {
@@ -67,6 +67,8 @@ export default function RootLayout() {
   const router = useRouter();
   const [fuentesListas, errorFuentes] = useFonts(FUENTES_ICONOS);
 
+  useSincronizacionUniones();
+
   useEffect(
     () =>
       escucharTapPush((destino) => {
@@ -75,7 +77,6 @@ export default function RootLayout() {
     [router],
   );
 
-  /** Reenvío los cambios guardados sin red en cuanto vuelve la conexión. */
   useEffect(() => iniciarSincronizacionAutomatica(), []);
 
   useEffect(() => {
@@ -122,8 +123,8 @@ const styles = StyleSheet.create({
   },
   cargando: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: Colores.blanco,
   },
 });
