@@ -1,19 +1,19 @@
-import { useFonts } from "expo-font";
-import { Stack, useRouter } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { TabBarPorRol } from "@/components/navegacion/TabBarPorRol";
-import { ToastProvider } from "@/components/ui";
-import { ROLES } from "@/constants/roles";
-import { Colores } from "@/constants/tema";
-import { SesionProvider, useSesion } from "@/hooks/useSesion";
-import { useSincronizacionUniones } from "@/hooks/useSincronizacionUniones";
-import { iniciarSincronizacionAutomatica } from "@/services/colaOffline";
-import { FUENTES_ICONOS } from "@/services/fuentes";
-import { escucharTapPush } from "@/services/notificaciones";
+import { TabBarPorRol } from '@/components/navegacion/TabBarPorRol';
+import { ToastProvider } from '@/components/ui';
+import { ROLES } from '@/constants/roles';
+import { Colores } from '@/constants/tema';
+import { SesionProvider, useSesion } from '@/hooks/useSesion';
+import { useSincronizacionUniones } from '@/hooks/useSincronizacionUniones';
+import { iniciarSincronizacionAutomatica } from '@/services/colaOffline';
+import { FUENTES_ICONOS } from '@/services/fuentes';
+import { GestorNotificaciones } from '@/components/notificaciones/GestorNotificaciones';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -47,6 +47,7 @@ function Navegador() {
         <Stack.Screen name="viajes-disponibles" />
         <Stack.Screen name="aceptar-viaje" />
         <Stack.Screen name="mis-viajes" />
+        <Stack.Screen name="detalle-viaje" />
         <Stack.Screen name="mis-solicitudes" />
         <Stack.Screen name="mi-perfil" />
         <Stack.Screen name="notificaciones" />
@@ -64,18 +65,9 @@ function Navegador() {
 }
 
 export default function RootLayout() {
-  const router = useRouter();
   const [fuentesListas, errorFuentes] = useFonts(FUENTES_ICONOS);
 
   useSincronizacionUniones();
-
-  useEffect(
-    () =>
-      escucharTapPush((destino) => {
-        router.push(destino as Parameters<typeof router.push>[0]);
-      }),
-    [router],
-  );
 
   useEffect(() => iniciarSincronizacionAutomatica(), []);
 
@@ -89,6 +81,7 @@ export default function RootLayout() {
     <ToastProvider>
       <SesionProvider>
         <StatusBar style="dark" />
+        <GestorNotificaciones />
         <View style={styles.contenedorAplicacion}>
           <View style={styles.franjaIdentidad} />
           {!fuentesListas && !errorFuentes ? (
@@ -123,8 +116,8 @@ const styles = StyleSheet.create({
   },
   cargando: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Colores.blanco,
   },
 });

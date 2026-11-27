@@ -46,6 +46,17 @@ El binario nativo corrupto se restauró desde el tarball oficial del registro np
 - **CI:** `Typecheck y lint` = success.
 - **Falta:** validación visual en dispositivo; la navegación en sí queda cubierta por pruebas automatizadas.
 
+### Sprint 3
+
+#### Tarea 18 — Integración de notificaciones push de Expo y registro de tokens
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo de esta jornada:** el servicio móvil ahora envía el token real de Expo a `POST /api/notificaciones/push-token` con la plataforma detectada. El backend ya expone ese endpoint con migración aditiva, modelo, repositorio, servicio y pruebas (PR backend `#40`). El token no se devuelve ni se imprime en logs.
+- **Archivos:** `src/services/notificaciones.ts`, `__tests__/notificaciones.test.ts`, este documento. Backend: `docs/PUSH_TOKEN_REGISTRO.md` y archivos indicados en ese PR.
+- **Pruebas:** 15 suites / 78 pruebas OK (3 nuevas móviles); backend 50/50 en la rama push y 53/53 tras integrar capacidad; `npx tsc --noEmit` limpio; `npm run lint` limpio.
+- **Commit / PR:** se registrará al publicar este bloque.
+- **Falta:** proveedor push remoto y prueba con notificación real en dispositivo. No se simuló entrega push.
+
 ### Tareas transversales
 
 #### Tarea 43 — CI/CD móvil
@@ -69,3 +80,36 @@ El binario nativo corrupto se restauró desde el tarball oficial del registro np
 | BLOQUEADO | 1 |
 
 Este registro se actualiza después de cada bloque integrado.
+
+## Actualización autónoma del 24 y 25 de noviembre de 2026
+
+### Sprint 4 / Tarea 25 — ConfirmModal, Skeleton y accesibilidad
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo ejecutado:** `ConfirmModal` reutiliza `Modal` con verde `#087A35`, amarillo `#FFD900` y blanco `#FFFFFF`; `Modal` anuncia `alert` y `accessibilityViewIsModal`; `Skeleton`/`SkeletonLista` anuncian `progressbar` con `busy`; `gestion.tsx` usa ambos componentes reales.
+- **Pruebas:** 15 suites / 73 pruebas OK en el bloque; `tsc` y `lint` limpios.
+- **Commit / PR:** `f58c315`, `3e5dfc6` · PR móvil `#39` mergeado (`07931e3`).
+
+### Sprint 3 / Tarea 18 — Token push consolidado
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo ejecutado:** el commit `4923c25` quedó integrado en `feature-ASEG1999`; el PR `#38` se cerró con nota de consolidación.
+- **Commit / PR:** `6abef4f` · PR `#39` mergeado.
+
+### Sprint 3 — Notificaciones en vivo y navegación desde `origin/dev`
+
+- **Estado anterior:** IMPLEMENTADO en rama ajena.
+- **Trabajo ejecutado:** siete commits de `origin/dev` recuperados sin crear ramas: avisos en vivo, detalle de viaje, destinatarios por correo, contador de no leídas y deduplicación del toque inicial. Se conservó `enviarTokenAlBackend` y se añadió el alias `escucharTapPush`.
+- **Pruebas:** 19 suites / 106 pruebas OK; `tsc` y `lint` limpios.
+- **Commit / PR:** `667756c` · PR `#40` mergeado (`016b49e`).
+
+### Sprint 4 / Tareas 28 y 29 — Responsive, accesibilidad y rendimiento
+
+- **Estado anterior:** PARCIAL.
+- **Trabajo ejecutado:** hook `useResponsivo` con decisiones puras y fallback seguro; dashboard adapta espaciado y tipografía, memoiza opciones por rol y etiqueta sus botones.
+- **Pruebas:** 20 suites / 110 pruebas OK; `tsc` y `lint` limpios.
+- **Commit / PR:** `5c82bc4` · PR del cierre autónomo.
+
+## Entrega final
+
+El cierre único, el estado de las 43 tareas, los PRs mergeados, las pruebas reales, los bloqueos y las actividades pendientes de Santiago están en `docs/INFORME_CIERRE_AUTONOMO.md`.

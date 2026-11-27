@@ -162,3 +162,28 @@ git push origin feature-ASEG1999
 | Inventario de bloqueos externos | Terminado | `docs/BLOQUEOS_EXTERNOS.md` | Revisión de dependencias externas | Documentados SSH, Expo, push, correo, JWT, dominio, PostGIS, Trello y tiendas | `c542f73`, PR `#32` mergeado |
 | CI backend | Parcialmente realizado | - | Workflows `CI Backend RutaGo` y `Deploy Backend RutaGo` | CI verde en run `45083225867`; Deploy falla por secretos SSH ausentes, fallo preexistente | - |
 | Verificación física en Expo Go | Bloqueado | - | - | Sin iPhone/emulador en este entorno | - |
+
+## Cierre autónomo 2026-11-24 · T25 (confirmación, carga y accesibilidad)
+
+| Tarea | Estado | Archivos modificados | Pruebas ejecutadas | Resultado | Commit / PR |
+| --- | --- | --- | --- | --- | --- |
+| T25 · `ConfirmModal` con identidad oficial y compatibilidad | TERMINADO | `src/components/ui/ConfirmModal.tsx`, `src/components/ui/Modal.tsx` | `npm test`, `npx tsc --noEmit`, `npm run lint` | Botón principal verde `#087A35` (variante `primario`), acento amarillo `#FFD900`, tarjeta blanca `#FFFFFF`; `accessibilityRole="alert"` y `accessibilityViewIsModal`; firma compatible con pantallas existentes | `f58c315` · PR del cierre autónomo |
+| T25 · `Skeleton` y `SkeletonLista` exportados | TERMINADO | `src/components/ui/Skeleton.tsx`, `src/components/ui/index.ts` | Ídem | Pulso animado sin datos fingidos, `accessibilityRole="progressbar"` y `accessibilityState.busy`; exports públicos desde `@/components/ui` | `f58c315` |
+| T25 · Uso real en gestión de registros | TERMINADO | `src/app/gestion.tsx` | Ídem | `Alert.alert` destructivo sustituido por `ConfirmModal`; `ActivityIndicator` sustituido por `SkeletonLista` durante la consulta | `f58c315` |
+| T25 · Pruebas automáticas de UI | TERMINADO | `__tests__/uiConfirmacionCarga.test.tsx` | `npm test` | 15 suites / 73 pruebas OK; cubre acciones, rol de alerta, rol de progreso y 6 bloques de lista | `f58c315` |
+
+## Cierre autónomo 2026-11-25 · T28 y T29 (responsive, accesibilidad y rendimiento)
+
+| Tarea | Estado | Archivos modificados | Pruebas ejecutadas | Resultado | Commit / PR |
+| --- | --- | --- | --- | --- | --- |
+| T28 · Decisiones responsivas por ancho | TERMINADO | `src/hooks/useResponsivo.ts`, `src/app/dashboard.tsx` | `npm test`, `npx tsc --noEmit`, `npm run lint` | Padding 16/24/40, cabecera 40/65 y saludo 23/27/30 según ancho; fallback 360 si la dimensión no es válida | `5c82bc4` · PR del cierre autónomo |
+| T29 · Accesibilidad y rendimiento del dashboard | TERMINADO | `src/app/dashboard.tsx`, `__tests__/responsive.test.ts` | Ídem | Botones con `accessibilityRole` y etiqueta descriptiva; listas memoizadas por rol; 20 suites / 110 pruebas OK | `5c82bc4` |
+
+## Cierre autónomo 2026-11-25 · T33, T41, T42 y T43
+
+| Tarea | Estado | Archivos modificados | Pruebas ejecutadas | Resultado | Commit / PR |
+| --- | --- | --- | --- | --- | --- |
+| T33 · E2E y export real | TERMINADO | Sin cambios de código | `npx expo export --platform web --output-dir <temp>` | Export correcto: 21 rutas, 84 archivos, sin errores de fuentes ni imports | PR del cierre autónomo |
+| T41 · Decisión tecnológica (Tailwind, SQLite, PostGIS) | TERMINADO | `docs/DECISIONES_TECNICAS_2026-11-25.md` | Revisión de dependencias, suites y contratos | No migrar a NativeWind; no adoptar SQLite sin build nativo; conservar PostGIS con fallback | PR del cierre autónomo |
+| T42 · Arquitectura offline-first | IMPLEMENTADO | `docs/DECISIONES_TECNICAS_2026-11-25.md` | `__tests__/offline.test.ts`, `__tests__/conexion.test.ts`, `__tests__/colaOffline.test.ts` | Caché cifrada, cola ordenada, reintentos, 4xx descartadas y reconexión cubiertos; falta prueba con red física apagada | PR del cierre autónomo |
+| T43 · CI/CD | PARCIAL | `.github/workflows/ci.yml` | CI de PR #39, #40 y #41 | NetInfo, tipos, lint, 110 pruebas y export web en verde; CD/EAS bloqueado por cuenta Expo | PRs #39-#41 mergeados |

@@ -57,6 +57,10 @@ export function Modal({
         onPress={cerrarAlTocarFondo && !cargando ? onCerrar : undefined}>
         <Pressable
           style={[styles.tarjeta, style]}
+          accessible
+          accessibilityViewIsModal
+          accessibilityRole="alert"
+          accessibilityLabel={titulo ?? 'Ventana de confirmación'}
           onPress={(evento) => evento.stopPropagation()}>
           {titulo ? <Text style={styles.titulo}>{titulo}</Text> : null}
           {mensaje ? <Text style={styles.mensaje}>{mensaje}</Text> : null}

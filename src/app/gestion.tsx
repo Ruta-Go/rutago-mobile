@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Pressable,
   RefreshControl,
@@ -13,6 +12,7 @@ import {
 import { isAxiosError, type AxiosError } from 'axios';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 
+import { ConfirmModal, SkeletonLista } from '@/components/ui';
 import { volverSeguro } from '@/utils/navegacion';
 
 import { RECURSOS, recursoPermitido } from '@/constants/gestion';
@@ -47,6 +47,7 @@ export default function GestionScreen() {
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [eliminando, setEliminando] = useState<number | null>(null);
+  const [itemAEliminar, setItemAEliminar] = useState<Registro | null>(null);
 
   const cargar = useCallback(async () => {
     if (!config) {
@@ -98,31 +99,26 @@ export default function GestionScreen() {
   };
 
   const confirmarEliminacion = (item: Registro) => {
-    const id = numero(item, 'id');
-    if (id == null) return;
-    Alert.alert(
-      `Eliminar ${config.singular}`,
-      `¿Eliminas el registro #${id}? Esta acción no se puede deshacer.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setEliminando(id);
-              await eliminarRecurso(config.endpoint, id);
-              await cargar();
-              Alert.alert('Listo', 'El registro se eliminó.');
-            } catch (error) {
-              Alert.alert('Error', mensajeError(error));
-            } finally {
-              setEliminando(null);
-            }
-          },
-        },
-      ],
-    );
+    if (numero(item, 'id') == null) return;
+    setItemAEliminar(item);
+  };
+
+  const eliminarConfirmado = async () => {
+    const item = itemAEliminar;
+    const id = item ? numero(item, 'id') : null;
+    if (!item || id == null) return;
+
+    try {
+      setEliminando(id);
+      setItemAEliminar(null);
+      await eliminarRecurso(config.endpoint, id);
+      await cargar();
+      Alert.alert('Listo', 'El registro se eliminó.');
+    } catch (error) {
+      Alert.alert('Error', mensajeError(error));
+    } finally {
+      setEliminando(null);
+    }
   };
 
   return (
@@ -172,7 +168,7 @@ export default function GestionScreen() {
 
         {cargando ? (
           <View style={styles.cargando}>
-            <ActivityIndicator size="large" color="#087A35" />
+            <SkeletonLista cantidad={3} />
             <Text style={styles.ayuda}>Consultando registros...</Text>
           </View>
         ) : items.length === 0 ? (
@@ -224,6 +220,20 @@ export default function GestionScreen() {
           </>
         )}
       </ScrollView>
+
+      <ConfirmModal
+        visible={itemAEliminar != null}
+        titulo={`Eliminar ${config.singular}`}
+        mensaje={
+          itemAEliminar
+            ? `¿Eliminas el registro #${numero(itemAEliminar, 'id') ?? '—'}? Esta acción no se puede deshacer.`
+            : ''
+        }
+        textoConfirmar="Eliminar"
+        cargando={eliminando != null}
+        onCerrar={() => setItemAEliminar(null)}
+        onConfirmar={() => void eliminarConfirmado()}
+      />
     </>
   );
 }
