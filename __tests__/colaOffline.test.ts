@@ -1,10 +1,6 @@
 /// <reference types="jest" />
-/**
- * Verifiqué que un cambio hecho sin red quede guardado, se reenvíe en orden
- * cuando vuelva la conexión y se descarten las respuestas definitivas.
- */
 
-jest.mock('expo-secure-store', () => {
+jest.mock("expo-secure-store", () => {
   const almacen = new Map<string, string>();
   return {
     getItemAsync: jest.fn(async (clave: string) => almacen.get(clave) ?? null),
@@ -18,39 +14,39 @@ jest.mock('expo-secure-store', () => {
   };
 });
 
-jest.mock('@/services/api', () => ({
+jest.mock("@/services/api", () => ({
   api: { request: jest.fn() },
   extraerDatos: (cuerpo: unknown) => cuerpo,
 }));
 
-jest.mock('@/services/conexion', () => ({
+jest.mock("@/services/conexion", () => ({
   hayConexion: jest.fn(async () => true),
   suscribirConexion: jest.fn(() => () => undefined),
 }));
 
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 
-import { suscribirConexion } from '@/services/conexion';
+import { api } from "@/services/api";
 import {
   encolarMutacion,
   iniciarSincronizacionAutomatica,
   listarPendientes,
   mutarConCola,
   sincronizarCola,
+  suscribirResultadosSincronizacion,
   vaciarCola,
-} from '@/services/colaOffline';
-import { api } from '@/services/api';
+} from "@/services/colaOffline";
+import { suscribirConexion } from "@/services/conexion";
 
-const CLAVE = 'rutago_cola_offline';
-const almacen = (
-  SecureStore as unknown as { __almacen: Map<string, string> }
-).__almacen;
+const CLAVE = "rutago_cola_offline";
+const almacen = (SecureStore as unknown as { __almacen: Map<string, string> })
+  .__almacen;
 const request = api.request as jest.Mock;
-const conRed = jest.requireMock('@/services/conexion').hayConexion as jest.Mock;
+const conRed = jest.requireMock("@/services/conexion").hayConexion as jest.Mock;
 
 /** Fallo de red: axios sin respuesta (la llamó el dispositivo, no el servidor). */
 function errorRed(): Error {
-  return Object.assign(new Error('Network Error'), { isAxiosError: true });
+  return Object.assign(new Error("Network Error"), { isAxiosError: true });
 }
 
 /** Respuesta del servidor con un estado concreto. */
@@ -58,7 +54,7 @@ function errorRespuesta(status: number): { response: { status: number } } {
   return { response: { status } };
 }
 
-describe('cola de cambios sin red', () => {
+describe("cola de cambios sin red", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     almacen.clear();
@@ -66,28 +62,28 @@ describe('cola de cambios sin red', () => {
     request.mockResolvedValue({ data: { ok: true } });
   });
 
-  it('envió el cambio cuando había red y no dejó nada pendiente', async () => {
+  it("envió el cambio cuando había red y no dejó nada pendiente", async () => {
     const resultado = await mutarConCola({
-      metodo: 'PATCH',
-      url: '/notificaciones/7/leida',
+      metodo: "PATCH",
+      url: "/notificaciones/7/leida",
     });
 
     expect(resultado).toMatchObject({ ok: true, offline: false });
     expect(resultado.datos).toEqual({ ok: true });
     expect(request).toHaveBeenCalledWith({
-      url: '/notificaciones/7/leida',
-      method: 'PATCH',
+      url: "/notificaciones/7/leida",
+      method: "PATCH",
       data: undefined,
     });
     expect(await listarPendientes()).toHaveLength(0);
   });
 
-  it('guardó el cambio para reenviarlo cuando no había red', async () => {
+  it("guardó el cambio para reenviarlo cuando no había red", async () => {
     conRed.mockResolvedValue(false);
 
     const resultado = await mutarConCola({
-      metodo: 'PUT',
-      url: '/vehiculos/3/ubicacion',
+      metodo: "PUT",
+      url: "/vehiculos/3/ubicacion",
       cuerpo: { latitud: 4 },
     });
 
@@ -97,44 +93,44 @@ describe('cola de cambios sin red', () => {
     const pendientes = await listarPendientes();
     expect(pendientes).toHaveLength(1);
     expect(pendientes[0]).toMatchObject({
-      metodo: 'PUT',
-      url: '/vehiculos/3/ubicacion',
+      metodo: "PUT",
+      url: "/vehiculos/3/ubicacion",
       intentos: 0,
     });
     expect(pendientes[0].cuerpo).toEqual({ latitud: 4 });
   });
 
-  it('guardó el cambio si la red cayó aunque el dispositivo seguía en línea', async () => {
+  it("guardó el cambio si la red cayó aunque el dispositivo seguía en línea", async () => {
     request.mockRejectedValue(errorRed());
 
     const resultado = await mutarConCola({
-      metodo: 'PUT',
-      url: '/vehiculos/3/ubicacion',
+      metodo: "PUT",
+      url: "/vehiculos/3/ubicacion",
     });
 
     expect(resultado).toMatchObject({ ok: true, offline: true });
     expect(await listarPendientes()).toHaveLength(1);
   });
 
-  it('devolvió el error del servidor sin guardar nada', async () => {
+  it("devolvió el error del servidor sin guardar nada", async () => {
     request.mockRejectedValue(errorRespuesta(400));
 
-    const resultado = await mutarConCola({ metodo: 'PATCH', url: '/viajes/1' });
+    const resultado = await mutarConCola({ metodo: "PATCH", url: "/viajes/1" });
 
     expect(resultado).toMatchObject({ ok: false, offline: false });
     expect(resultado.error).toBeDefined();
     expect(await listarPendientes()).toHaveLength(0);
   });
 
-  it('dejó sólo el último valor pendiente del mismo recurso', async () => {
+  it("dejó sólo el último valor pendiente del mismo recurso", async () => {
     await encolarMutacion({
-      metodo: 'PUT',
-      url: '/vehiculos/3/ubicacion',
+      metodo: "PUT",
+      url: "/vehiculos/3/ubicacion",
       cuerpo: { latitud: 1 },
     });
     await encolarMutacion({
-      metodo: 'PUT',
-      url: '/vehiculos/3/ubicacion',
+      metodo: "PUT",
+      url: "/vehiculos/3/ubicacion",
       cuerpo: { latitud: 9 },
     });
 
@@ -144,15 +140,15 @@ describe('cola de cambios sin red', () => {
     expect(pendientes[0].cuerpo).toEqual({ latitud: 9 });
   });
 
-  it('acumuló los cambios que no pueden pisarse entre sí', async () => {
-    await encolarMutacion({ metodo: 'POST', url: '/viajes/1/solicitar' });
-    await encolarMutacion({ metodo: 'POST', url: '/viajes/1/solicitar' });
+  it("acumuló los cambios que no pueden pisarse entre sí", async () => {
+    await encolarMutacion({ metodo: "POST", url: "/viajes/1/solicitar" });
+    await encolarMutacion({ metodo: "POST", url: "/viajes/1/solicitar" });
 
     expect(await listarPendientes()).toHaveLength(2);
   });
 
-  it('vació la cola al cerrar la sesión', async () => {
-    await encolarMutacion({ metodo: 'PATCH', url: '/notificaciones/1/leida' });
+  it("vació la cola al cerrar la sesión", async () => {
+    await encolarMutacion({ metodo: "PATCH", url: "/notificaciones/1/leida" });
 
     await vaciarCola();
 
@@ -160,7 +156,7 @@ describe('cola de cambios sin red', () => {
   });
 });
 
-describe('sincronización al recuperar la red', () => {
+describe("sincronización al recuperar la red", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     almacen.clear();
@@ -168,22 +164,22 @@ describe('sincronización al recuperar la red', () => {
     request.mockResolvedValue({ data: { ok: true } });
   });
 
-  it('reenvió los cambios pendientes respetando el orden original', async () => {
-    await encolarMutacion({ metodo: 'POST', url: '/viajes/1/bajarse' });
-    await encolarMutacion({ metodo: 'POST', url: '/viajes/2/bajarse' });
+  it("reenvió los cambios pendientes respetando el orden original", async () => {
+    await encolarMutacion({ metodo: "POST", url: "/viajes/1/bajarse" });
+    await encolarMutacion({ metodo: "POST", url: "/viajes/2/bajarse" });
 
     const resultado = await sincronizarCola();
 
     expect(resultado).toEqual({ enviadas: 2, descartadas: 0, quedan: 0 });
     expect(request.mock.calls.map((llamada) => llamada[0].url)).toEqual([
-      '/viajes/1/bajarse',
-      '/viajes/2/bajarse',
+      "/viajes/1/bajarse",
+      "/viajes/2/bajarse",
     ]);
     expect(await listarPendientes()).toHaveLength(0);
   });
 
-  it('descartó lo que el servidor rechazó con 4xx', async () => {
-    await encolarMutacion({ metodo: 'PATCH', url: '/viajes/1/cancelar' });
+  it("descartó lo que el servidor rechazó con 4xx", async () => {
+    await encolarMutacion({ metodo: "PATCH", url: "/viajes/1/cancelar" });
     request.mockRejectedValue(errorRespuesta(409));
 
     const resultado = await sincronizarCola();
@@ -192,8 +188,8 @@ describe('sincronización al recuperar la red', () => {
     expect(await listarPendientes()).toHaveLength(0);
   });
 
-  it('conservó el cambio cuando falló la red y sumó un intento', async () => {
-    await encolarMutacion({ metodo: 'PUT', url: '/vehiculos/3/ubicacion' });
+  it("conservó el cambio cuando falló la red y sumó un intento", async () => {
+    await encolarMutacion({ metodo: "PUT", url: "/vehiculos/3/ubicacion" });
     request.mockRejectedValue(errorRed());
 
     const resultado = await sincronizarCola();
@@ -204,8 +200,8 @@ describe('sincronización al recuperar la red', () => {
     expect(pendientes[0].intentos).toBe(1);
   });
 
-  it('descartó el cambio cuando agotó los reintentos', async () => {
-    await encolarMutacion({ metodo: 'PUT', url: '/vehiculos/3/ubicacion' });
+  it("descartó el cambio cuando agotó los reintentos", async () => {
+    await encolarMutacion({ metodo: "PUT", url: "/vehiculos/3/ubicacion" });
 
     // Cuatro intentos previos: el quinto es el último permitido.
     const pendientes = await listarPendientes();
@@ -219,18 +215,56 @@ describe('sincronización al recuperar la red', () => {
     expect(await listarPendientes()).toHaveLength(0);
   });
 
-  it('no encoló nada cuando no había trabajo pendiente', async () => {
+  it("no encoló nada cuando no había trabajo pendiente", async () => {
     const resultado = await sincronizarCola();
 
     expect(resultado).toEqual({ enviadas: 0, descartadas: 0, quedan: 0 });
     expect(request).not.toHaveBeenCalled();
   });
 
-  it('programó el reenvío automático al recuperar la conexión', async () => {
+  it("avisa a los suscriptores qué cambios quedaron resueltos", async () => {
+    const recibidos: unknown[] = [];
+    const baja = suscribirResultadosSincronizacion((resultados) => {
+      recibidos.push(resultados);
+    });
+
+    await encolarMutacion({ metodo: "POST", url: "/viajes/4/unirse" });
+    await encolarMutacion({ metodo: "PATCH", url: "/viajes/4/cancelar" });
+    request.mockImplementation(({ url }: { url: string }) =>
+      url.endsWith("/unirse")
+        ? Promise.resolve({ data: {} })
+        : Promise.reject(errorRespuesta(409)),
+    );
+
+    await sincronizarCola();
+    baja();
+
+    expect(recibidos).toEqual([
+      [
+        {
+          id: expect.any(String),
+          metodo: "POST",
+          url: "/viajes/4/unirse",
+          ok: true,
+          descartada: false,
+        },
+        {
+          id: expect.any(String),
+          metodo: "PATCH",
+          url: "/viajes/4/cancelar",
+          ok: false,
+          descartada: true,
+          estado: 409,
+        },
+      ],
+    ]);
+  });
+
+  it("programó el reenvío automático al recuperar la conexión", async () => {
     const baja = iniciarSincronizacionAutomatica();
 
     expect(suscribirConexion).toHaveBeenCalled();
-    expect(typeof baja).toBe('function');
+    expect(typeof baja).toBe("function");
 
     baja();
     // Dejo terminar la comprobación inicial de red que dispara la sincronización.
