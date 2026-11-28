@@ -10,11 +10,11 @@ import { ToastProvider } from '@/components/ui';
 import { ROLES } from '@/constants/roles';
 import { Colores } from '@/constants/tema';
 import { SesionProvider, useSesion } from '@/hooks/useSesion';
+import { useSincronizacionUniones } from '@/hooks/useSincronizacionUniones';
 import { iniciarSincronizacionAutomatica } from '@/services/colaOffline';
 import { FUENTES_ICONOS } from '@/services/fuentes';
 import { GestorNotificaciones } from '@/components/notificaciones/GestorNotificaciones';
 
-// Evito que iOS oculte el splash antes de que las fuentes de iconos estén listas.
 void SplashScreen.preventAutoHideAsync();
 
 function Navegador() {
@@ -67,7 +67,8 @@ function Navegador() {
 export default function RootLayout() {
   const [fuentesListas, errorFuentes] = useFonts(FUENTES_ICONOS);
 
-  /** Reenvío los cambios guardados sin red en cuanto vuelve la conexión. */
+  useSincronizacionUniones();
+
   useEffect(() => iniciarSincronizacionAutomatica(), []);
 
   useEffect(() => {

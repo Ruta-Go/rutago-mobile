@@ -77,11 +77,12 @@ La app sigue funcionando cuando la red cae y no pierde el trabajo hecho en campo
 
 - **Lecturas:** `obtenerConCache` (`src/services/offline.ts`) intenta la red primero y, si falla, devuelve la última respuesta real guardada en `SecureStore`. Sin caché propaga el error original; nunca inventa registros.
 - **Escrituras:** `mutarConCola` (`src/services/colaOffline.ts`) envía el cambio si hay red y, si no, lo guarda en la cola `rutago_cola_offline` para reenviarlo después.
+- **Optimismo:** unirse a un viaje usa `useMutation` (`src/hooks/useMutation.ts`) con `onMutate`/`onError`/`onSettled`: el viaje desaparece de la lista al instante, vuelve si el servidor lo rechaza y queda marcado como pendiente si se guardó sin red. `src/hooks/useSincronizacionUniones.ts` aplica el resultado real de la cola al reconectar.
 - **Detección:** `src/services/conexion.ts` escucha el estado del dispositivo con `@react-native-community/netinfo` y dispara la sincronización al recuperar la conexión. También se intenta al arrancar la app, por si quedó trabajo de una sesión anterior.
 - **Conflictos:** al encolar, un `PUT` o `PATCH` sobre el mismo recurso reemplaza al pendiente (último en ganar), de modo que sólo se reenvía la posición o el estado más reciente. Al sincronizar se conserva el orden original, se descartan los `4xx` del servidor (validación o conflicto) y se limitan los reintentos a 5 por cambio.
 - **Sesión:** `cerrarSesion` vacía la cola para no reenviar cambios de otra cuenta.
 
-Están conectados a la cola el reporte de ubicación del conductor y el marcado de notificaciones como leidas. Las decisiones con efecto inmediato y no repetibles (bajarse o cancelar un viaje) siguen exigiendo red: reenviarlas horas después aplicaría una decisión que ya no es la del usuario.
+Están conectados a la cola el reporte de ubicación del conductor, el marcado de notificaciones como leídas y la unión a un viaje. Las decisiones con efecto inmediato y no repetibles (bajarse o cancelar un viaje) siguen exigiendo red: reenviarlas horas después aplicaría una decisión que ya no es la del usuario.
 
 ## Verificación
 

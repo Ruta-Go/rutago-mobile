@@ -6,11 +6,6 @@ import { api, extraerDatos } from '@/services/api';
 
 let manejadorInstalado = false;
 
-/**
- * Envié el token real al backend autenticado. Si falla el registro remoto no
- * rompo la pantalla: las notificaciones locales y WebSocket siguen activas.
- * Nunca imprimí el token completo en consola.
- */
 export async function enviarTokenAlBackend(token: string): Promise<boolean> {
   if (Platform.OS === 'web' || !token) return false;
 
@@ -25,10 +20,6 @@ export async function enviarTokenAlBackend(token: string): Promise<boolean> {
   }
 }
 
-/**
- * Registré permisos y el token público de Expo cuando hay proyecto configurado.
- * Sin projectId de Expo no invento un token: las notificaciones locales siguen funcionando.
- */
 export async function registrarNotificaciones(): Promise<string | null> {
   if (Platform.OS === 'web') return null;
 
@@ -50,7 +41,6 @@ export async function registrarNotificaciones(): Promise<string | null> {
     : await Notificaciones.requestPermissionsAsync();
   if (!permiso.granted) return null;
 
-  // Tomé el projectId publicado en app.json y permití sobreescribirlo con la variable pública.
   const projectId =
     process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
     (Constants.expoConfig?.extra?.eas as { projectId?: string } | undefined)
@@ -142,7 +132,6 @@ export function escucharNotificaciones({
   };
 }
 
-/** Alias conservado para pantallas que todavía usaban la API anterior. */
 export function escucharTapPush(
   alTocar: (destino: DestinoPush) => void,
 ): () => void {
@@ -169,20 +158,24 @@ export async function limpiarContador(): Promise<void> {
   if (Platform.OS === 'web') return;
   try {
     await Notificaciones.setBadgeCountAsync(0);
-  } catch {
+  } catch (error) {
+    console.warn('[notificaciones] no se pudo limpiar el contador', error);
   }
 }
 
-/** Convertí cada evento real del backend en una notificación local inmediata. */
 export async function mostrarNotificacionLocal(
   titulo: string,
   cuerpo: string,
   datos?: Record<string, unknown>,
 ): Promise<void> {
-  await Notificaciones.scheduleNotificationAsync({
-    content: datos
-      ? { title: titulo, body: cuerpo, sound: true, data: datos }
-      : { title: titulo, body: cuerpo, sound: true },
-    trigger: null,
-  });
+  try {
+    await Notificaciones.scheduleNotificationAsync({
+      content: datos
+        ? { title: titulo, body: cuerpo, sound: true, data: datos }
+        : { title: titulo, body: cuerpo, sound: true },
+      trigger: null,
+    });
+  } catch (error) {
+    console.warn('[notificaciones] no se pudo mostrar la notificación local', error);
+  }
 }

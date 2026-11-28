@@ -1,14 +1,11 @@
-import { router } from 'expo-router';
-import { create } from 'zustand';
+import { router } from "expo-router";
+import { create } from "zustand";
 
-import { esRolValido } from '@/constants/roles';
-import { leerSesion, suscribirseASesion } from '@/services/api';
-import {
-  getUser,
-  logout,
-  type UsuarioAuth,
-} from '@/services/authService';
-import { vaciarCola } from '@/services/colaOffline';
+import { esRolValido } from "@/constants/roles";
+import { leerSesion, suscribirseASesion } from "@/services/api";
+import { getUser, logout, type UsuarioAuth } from "@/services/authService";
+import { vaciarCola } from "@/services/colaOffline";
+import { useUnionesStore } from "@/store/unionesStore";
 
 export type UsuarioSesion = UsuarioAuth;
 
@@ -23,11 +20,6 @@ type EstadoAuth = {
   cerrarSesion: () => Promise<void>;
 };
 
-/**
- * Centralicé la sesión en Zustand y dejé a SecureStore como única persistencia.
- * El store se hidrata desde el almacenamiento seguro y se sincroniza con los
- * cambios que hace el interceptor de la API al renovar tokens.
- */
 export const useAuthStore = create<EstadoAuth>((set, get) => ({
   token: null,
   usuario: null,
@@ -65,10 +57,9 @@ export const useAuthStore = create<EstadoAuth>((set, get) => ({
       const usuario = await getUser();
       set({ usuario });
     } catch (error) {
-      // Mantengo la sesión si el backend no responde, pero expulso al usuario si su rol dejó de ser válido.
       if (
         error instanceof Error &&
-        error.message.includes('rol no está habilitado')
+        error.message.includes("rol no está habilitado")
       ) {
         await logout();
         set({ token: null, usuario: null, cargando: false });
@@ -82,16 +73,16 @@ export const useAuthStore = create<EstadoAuth>((set, get) => ({
 
   cerrarSesion: async () => {
     await logout();
-    // Los cambios sin red pertenecen a la sesión que se cerró: no se reenvían.
+
     await vaciarCola();
+    useUnionesStore.getState().limpiar();
     set({ token: null, usuario: null, cargando: false });
-    router.replace('/');
+    router.replace("/");
   },
 }));
 
 let sincronizando = false;
 
-/** Suscribí el store a los cambios de sesión para reflejar renovaciones y cierres inmediatamente. */
 export function iniciarSincronizacionSesion(): () => void {
   if (sincronizando) return () => undefined;
   sincronizando = true;
