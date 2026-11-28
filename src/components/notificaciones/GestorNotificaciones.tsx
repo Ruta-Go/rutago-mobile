@@ -14,7 +14,7 @@ import {
 } from '@/services/notificaciones';
 import { avisoLocalDesdeEvento } from '@/utils/notificaciones';
 
-const RETRASO_NAVEGACION_MS = 350;
+const RETRASO_NAVEGACION_MS = 1000;
 
 export function GestorNotificaciones() {
   const router = useRouter();
@@ -25,10 +25,17 @@ export function GestorNotificaciones() {
 
   const navegar = useCallback(
     (destino: DestinoPush) => {
-      const ir = () =>
+      const ir = (intento = 0) => {
         setTimeout(() => {
-          router.push(destino as Parameters<typeof router.push>[0]);
-        }, RETRASO_NAVEGACION_MS);
+          try {
+            if (!router || typeof router.push !== 'function') return;
+            router.push(destino as Parameters<typeof router.push>[0]);
+          } catch (error) {
+            console.warn('[notificaciones] no se pudo navegar, reintentando', error);
+            if (intento < 2) ir(intento + 1);
+          }
+        }, RETRASO_NAVEGACION_MS * (intento + 1));
+      };
 
       if (AppState.currentState === 'active') {
         ir();
