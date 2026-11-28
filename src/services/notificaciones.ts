@@ -169,7 +169,8 @@ export async function limpiarContador(): Promise<void> {
   if (Platform.OS === 'web') return;
   try {
     await Notificaciones.setBadgeCountAsync(0);
-  } catch {
+  } catch (error) {
+    console.warn('[notificaciones] no se pudo limpiar el contador', error);
   }
 }
 
@@ -179,10 +180,14 @@ export async function mostrarNotificacionLocal(
   cuerpo: string,
   datos?: Record<string, unknown>,
 ): Promise<void> {
-  await Notificaciones.scheduleNotificationAsync({
-    content: datos
-      ? { title: titulo, body: cuerpo, sound: true, data: datos }
-      : { title: titulo, body: cuerpo, sound: true },
-    trigger: null,
-  });
+  try {
+    await Notificaciones.scheduleNotificationAsync({
+      content: datos
+        ? { title: titulo, body: cuerpo, sound: true, data: datos }
+        : { title: titulo, body: cuerpo, sound: true },
+      trigger: null,
+    });
+  } catch (error) {
+    console.warn('[notificaciones] no se pudo mostrar la notificación local', error);
+  }
 }
