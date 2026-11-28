@@ -1,5 +1,5 @@
 import { isAxiosError, type AxiosError } from "axios";
-import { router, Stack } from "expo-router";
+import { router, Stack, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,9 +19,9 @@ import { api, extraerLista } from "@/services/api";
 import { useUnionesStore } from "@/store/unionesStore";
 import type { Viaje } from "@/types/rutago";
 import {
-  fechaLegible,
-  idEstado,
-  nombreEstado,
+  cuposLibres,
+  etiquetaEstado,
+  sePuedeUnir,
   tituloRuta,
 } from "@/utils/viajes";
 
@@ -48,9 +48,7 @@ export default function ViajesDisponiblesScreen() {
   const cargar = useCallback(async () => {
     try {
       const respuesta = await api.get<unknown>("/viajes/disponibles-pasajero");
-      const lista = extraerLista<Viaje>(respuesta.data).filter(
-        (viaje) => idEstado(viaje) === 1,
-      );
+      const lista = extraerLista<Viaje>(respuesta.data).filter(sePuedeUnir);
       setViajes(lista);
     } catch (error) {
       console.error("Error al cargar viajes disponibles:", mensajeError(error));
@@ -60,6 +58,12 @@ export default function ViajesDisponiblesScreen() {
       setRefrescando(false);
     }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void Promise.resolve().then(cargar);
+    }, [cargar]),
+  );
 
   const {
     mutate,
@@ -126,7 +130,7 @@ export default function ViajesDisponiblesScreen() {
         <Text style={styles.marca}>RUTA GO</Text>
         <Text style={styles.titulo}>Viajes disponibles</Text>
         <Text style={styles.descripcion}>
-          Viajes reales en estado «Buscando conductor» a los que todavía no te
+          Viajes con conductor asignado y cupos libres a los que todavía no te
           has unido.
         </Text>
 
@@ -185,7 +189,8 @@ export default function ViajesDisponiblesScreen() {
             <Text style={styles.icono}>🚐</Text>
             <Text style={styles.vacioTitulo}>No hay viajes disponibles</Text>
             <Text style={styles.vacioTexto}>
-              Cuando haya solicitudes abiertas, aparecerán aquí.
+              Cuando un conductor acepte un viaje con cupos libres, aparecerá
+              aquí.
             </Text>
           </View>
         )}
@@ -195,17 +200,24 @@ export default function ViajesDisponiblesScreen() {
             <View key={viaje.id} style={styles.tarjeta}>
               <View style={styles.cabecera}>
                 <Text style={styles.nombreRuta}>{tituloRuta(viaje)}</Text>
-                <Text style={styles.estadoChip}>{nombreEstado(viaje)}</Text>
+                <Text style={styles.estadoChip}>{etiquetaEstado(viaje)}</Text>
               </View>
-              <Text style={styles.dato}>Solicitud #{viaje.id}</Text>
+              <Text style={styles.dato}>Viaje #{viaje.id}</Text>
               <Text style={styles.dato}>
-                Horario: {viaje.horario?.horaSalida ?? "No disponible"}
+                Salida: {viaje.horario?.horaSalida?.slice(0, 5) ?? "No disponible"}
               </Text>
               <Text style={styles.dato}>
-                Creado: {fechaLegible(viaje.createdAt)}
+                Conductor:{" "}
+                {[viaje.conductor?.nombres, viaje.conductor?.apellidos]
+                  .filter(Boolean)
+                  .join(" ") || "Asignado"}
               </Text>
               <Text style={styles.dato}>
-                Pasajeros: {viaje.pasajeros?.length ?? 0}
+                Vehículo: {viaje.vehiculo?.placa ?? "Asignado"}
+              </Text>
+              <Text style={styles.dato}>
+                Cupos libres: {cuposLibres(viaje)} de{" "}
+                {viaje.vehiculo?.capacidadPasajeros}
               </Text>
               <Pressable
                 style={[

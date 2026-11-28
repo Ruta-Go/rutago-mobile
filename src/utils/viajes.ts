@@ -29,6 +29,17 @@ export function etiquetaEstado(viaje: Viaje): string {
   return codigo ? codigo.charAt(0).toUpperCase() + codigo.slice(1) : 'Sin estado';
 }
 
+export function cuposLibres(viaje: Viaje): number | null {
+  const capacidad = Number(viaje.vehiculo?.capacidadPasajeros);
+  if (!Number.isFinite(capacidad) || capacidad <= 0) return null;
+  return Math.max(capacidad - (viaje.pasajeros?.length ?? 0), 0);
+}
+
+export function sePuedeUnir(viaje: Viaje): boolean {
+  const cupos = cuposLibres(viaje);
+  return idEstado(viaje) === ESTADO_VIAJE.ACEPTADO && cupos !== null && cupos > 0;
+}
+
 export function idEstado(viaje: Viaje): number | null {
   return viaje.estado?.id ?? null;
 }
